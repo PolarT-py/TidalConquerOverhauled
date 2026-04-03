@@ -3,6 +3,8 @@ from pathlib import Path
 import pygame
 from App.settings import load_settings, save_settings
 from App.renderer import Renderer
+from App.asset_manager import AssetManager
+from App.mixer import Mixer
 
 class Game:
     def __init__(self):
@@ -17,9 +19,9 @@ class Game:
         pygame.display.set_caption(self.settings.main.window_title)
 
         self.renderer = Renderer(self.settings.main.window_size, self.settings.main.render_size)
-        self.test_texture = self.renderer.load_texture(
-            "/home/polar/PycharmProjects/TidalConquerOverhauled/Assets/Images/boats/boat1.png"
-        )
+        self.mixer = Mixer()
+        self.asset_manager = AssetManager(self.renderer, self.mixer)
+        self.asset_manager.load_all()
 
         self.clock = pygame.time.Clock()
         self.running = True
@@ -39,11 +41,13 @@ class Game:
         pass
 
     def draw(self):
-        # Draw the Screen Background Color
+        # Draw the Window Background Color and Playfield Background Color
         self.renderer.clear(self.settings.main.window_bg_color)
         self.renderer.fill((0, 0, 0))
         # Draw Test Object
-        self.renderer.draw_texture(self.test_texture, (0, 0)) # Test draw
+        self.renderer.draw_texture(
+            self.asset_manager.library["textures"]["boats/boat1"], (0, 0)
+        ) # Test draw
 
     def run(self):
         while self.running:

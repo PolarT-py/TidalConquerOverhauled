@@ -15,10 +15,12 @@ class MainSettings:
     window_bg_color: tuple[int, int, int]
     render_size: tuple[int, int]
     fps: int
+    debug: bool
 
 @dataclass
 class AudioSettings:
     master: float
+    music: float
 
 @dataclass
 class Settings:
@@ -54,9 +56,11 @@ def load_settings() -> Settings:
         window_bg_color=main_data["window_bg_color"],
         render_size=main_data["render_size"],
         fps=main_data["fps"],
+        debug=main_data["debug"],
     )
     audio = AudioSettings(
-        master=audio_data["master"]
+        master=audio_data["master"],
+        music=audio_data["music"],
     )
 
     return Settings(main=main, audio=audio)
@@ -72,9 +76,11 @@ def save_settings(settings: Settings) -> None:
             "window_bg_color": list(settings.main.window_bg_color),
             "render_size": list(settings.main.render_size),
             "fps": settings.main.fps,
+            "debug": settings.main.debug,
         },
         "audio": {
             "master": settings.audio.master,
+            "music": settings.audio.music,
         },
     }
     lines = []
@@ -86,11 +92,13 @@ def save_settings(settings: Settings) -> None:
     lines.append(f'window_bg_color = {data["main"]["window_bg_color"]}')
     lines.append(f'render_size = [1280, 720] # DO NOT CHANGE')  # Lol no change
     lines.append(f"fps = {data['main']['fps']}")
+    lines.append(f"debug = {data['main']['debug']}")
     lines.append("")
 
     # Add [audio]
     lines.append("[audio]")
     lines.append(f"master = {data['audio']['master']}")
+    lines.append(f"music = {data['audio']['music']}")
     lines.append("")
 
     SETTINGS_FILE.write_text("\n".join(lines), encoding="utf-8")
