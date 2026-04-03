@@ -1,7 +1,7 @@
 [main]
-window_size = [1280, 720]
+window_width = 1280
+window_height = 720
 window_title = "Tidal Conquer: Overhauled"
-window_bg_color = [16, 18, 17]
 fps = 60
 
 [audio]
