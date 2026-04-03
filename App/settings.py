@@ -13,6 +13,7 @@ class MainSettings:
     window_size: tuple[int, int]
     window_title: str
     window_bg_color: tuple[int, int, int]
+    render_size: tuple[int, int]
     fps: int
 
 @dataclass
@@ -51,6 +52,7 @@ def load_settings() -> Settings:
         window_size=main_data["window_size"],
         window_title=main_data["window_title"],
         window_bg_color=main_data["window_bg_color"],
+        render_size=main_data["render_size"],
         fps=main_data["fps"],
     )
     audio = AudioSettings(
@@ -68,6 +70,7 @@ def save_settings(settings: Settings) -> None:
             "window_size": list(settings.main.window_size),
             "window_title": settings.main.window_title,
             "window_bg_color": list(settings.main.window_bg_color),
+            "render_size": list(settings.main.render_size),
             "fps": settings.main.fps,
         },
         "audio": {
@@ -81,6 +84,7 @@ def save_settings(settings: Settings) -> None:
     lines.append(f"window_size = {data['main']['window_size']}")
     lines.append(f'window_title = "{data["main"]["window_title"]}"')
     lines.append(f'window_bg_color = {data["main"]["window_bg_color"]}')
+    lines.append(f'render_size = [1280, 720] # DO NOT CHANGE')  # Lol no change
     lines.append(f"fps = {data['main']['fps']}")
     lines.append("")
 
