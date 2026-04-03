@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# PyCharm / JetBrains
+.idea/
+*.iml
+
+# VS Code (optional)
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build / packaging
+dist/
+build/
+*.spec
+
+# Logs
+*.log
+
+# Your project design doc (optional)
+PROJECT.md
+project.md
+
+# Temporary / misc
+*.tmp
+*.bak
