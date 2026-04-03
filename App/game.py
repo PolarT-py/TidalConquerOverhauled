@@ -25,6 +25,7 @@ class Game:
 
         self.clock = pygame.time.Clock()
         self.running = True
+        self.test = 0
 
     def handle_events(self):
         for event in pygame.event.get():
@@ -46,8 +47,9 @@ class Game:
         self.renderer.fill((0, 0, 0))
         # Draw Test Object
         self.renderer.draw_texture(
-            self.asset_manager.library["textures"]["boats/boat1"], (0, 0)
+            self.asset_manager.library["textures"]["boats/boat1"], (self.test, 0)
         ) # Test draw
+        self.test += 1
 
     def run(self):
         while self.running:

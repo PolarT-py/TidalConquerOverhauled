@@ -76,7 +76,7 @@ def save_settings(settings: Settings) -> None:
             "window_bg_color": list(settings.main.window_bg_color),
             "render_size": list(settings.main.render_size),
             "fps": settings.main.fps,
-            "debug": settings.main.debug,
+            "debug": str(settings.main.debug).lower(),
         },
         "audio": {
             "master": settings.audio.master,
