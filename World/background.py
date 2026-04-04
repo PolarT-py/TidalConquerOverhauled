@@ -48,7 +48,6 @@ class Background:
             self.current_sea_color = self.sea_colors[self.animation_state]
             self.sky.texture = self.asset_manager.get(f"bg/bg{self.animation_state+1}")
 
-
     def draw_all(self):
         self.renderer.fill(self.current_sea_color)  # Draw Sea
         self.renderer.draw_sprite(self.sky)  # Draw Sky
