@@ -5,6 +5,7 @@ from App.settings import load_settings, save_settings
 from App.renderer import Renderer, Sprite2D
 from App.asset_manager import AssetManager
 from App.mixer import Mixer
+from World.background import Background
 
 class Game:
     def __init__(self):
@@ -20,18 +21,16 @@ class Game:
 
         self.renderer = Renderer(self.settings.main.window_size, self.settings.main.render_size)
         self.mixer = Mixer()
+        self.mixer.load_settings(self.settings)
         self.asset_manager = AssetManager(self.renderer, self.mixer)
         self.asset_manager.load_all()
+        self.mixer.play_sound("click1")  # Test opening sound
 
         self.clock = pg.time.Clock()
         self.running = True
-        self.test = -200
-        self.test_sprite = Sprite2D(
-            self.asset_manager.library["textures"]["boats/boat2"],
-            pg.Vector2(100, 300),
-            140.0,
-            pg.Vector2(1.1, 1.1),
-        )
+
+        # Set Objects
+        self.background = Background(self.renderer, self.asset_manager)
 
     def handle_events(self):
         for event in pg.event.get():
@@ -44,21 +43,13 @@ class Game:
                 self.renderer.set_window_size(self.settings.main.window_size)
 
     def update(self, dt: float):
-        # nothing yet
-        pass
+        self.background.update(dt)
 
     def draw(self):
-        # Draw the Window Background Color and Playfield Background Color
+        # Draw the Window Background Color (Clear Screen)
         self.renderer.clear(self.settings.main.window_bg_color)
-        self.renderer.fill((0, 0, 0))
-        # Draw Test Object
-        self.renderer.draw_texture(
-            self.asset_manager.library["textures"]["boats/boat1"], (self.test, 0)
-        ) # Test draw
-        self.test += 1
-        # Draw another Test Object
-        self.renderer.draw_sprite(self.test_sprite)
-        self.test_sprite.rotation += 1
+        # Draw Background (Sky and Sea)
+        self.background.draw_all()
 
     def run(self):
         while self.running:
@@ -71,7 +62,7 @@ class Game:
             self.draw()
 
             # Update the screen
-            pg.display.flip()
+            pg.display.flip()  # In the future, change this to update when have to (Save GPU)
 
         # Save settings and Quit game after loop stops
         save_settings(self.settings)

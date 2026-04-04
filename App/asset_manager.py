@@ -17,6 +17,12 @@ class AssetManager:
             # Audio is stored in the Mixer itself
         }
 
+    def get(self, key):
+        if self.library[key] is not None:
+            return self.library[key]
+        debug_print("No such Key (Texture/Path)", debug_mode)
+        return None
+
     def load_texture(self, path):
         # Load the texture
         loaded_texture = self.renderer.load_texture(path)
@@ -24,7 +30,7 @@ class AssetManager:
         relative = path.relative_to(ASSETS_ROOT / "Images")
         key = relative.with_suffix("").as_posix()
         # Add to the library
-        self.library["textures"][key] = loaded_texture
+        self.library[key] = loaded_texture
         debug_print(f'Loaded Texture: "{path}"', debug_mode)
 
     def load_audio(self, path):
@@ -36,7 +42,7 @@ class AssetManager:
         debug_print(f'Loaded Audio: "{path}"', debug_mode)
 
     def load_all(self):
-        # Instantly load all the textures and audio files in ROOT/Assets/
+        # Load all the textures and audio files in ROOT/Assets/
         for file in ASSETS_ROOT.rglob("*"):
             if file.is_file():
                 # If the file is an image
