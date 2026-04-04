@@ -37,11 +37,12 @@ class Background:
         #     position=Vector2(0, 500),
         #     rotation=0.0,
         #     scale=Vector2(1.28, 1.28),
-        #     position_mode="topleft",
+        #     position_mode="topleft"
         # )
 
     def update(self, dt):
         # Check if it can update animation
+        self.sky.rotation += 1
         if self.animation_state_change_timer.update(dt):
             # Flip animation state
             self.animation_state ^= 1
