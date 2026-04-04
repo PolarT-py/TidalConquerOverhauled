@@ -4,7 +4,8 @@ from App.settings import load_settings, save_settings
 from App.renderer import Renderer, Sprite2D
 from App.asset_manager import AssetManager
 from App.mixer import Mixer
-from App.camera import Camera2D
+from App.camera import Camera2D, DebugCameraController
+from App.input import InputManager
 from World.background import Background
 
 class Game:
@@ -25,13 +26,20 @@ class Game:
         self.mixer.load_settings(self.settings)
         self.asset_manager = AssetManager(self.renderer, self.mixer)
         self.asset_manager.load_all()
-        self.mixer.play_sound("effects/click1")  # Test opening sound
+        self.input_manager = InputManager()
 
         self.clock = pg.time.Clock()
         self.running = True
 
+        # Set Input Controllers
+        self.debug_controller = DebugCameraController(self.input_manager)
+        self.DEBUG_CAMERA_SPEED = 500  # Only for debugging. Used to move camera (Outside)
+
         # Set Objects
         self.background = Background(self.renderer, self.asset_manager)
+
+        # Set Actions
+        self.mixer.play_sound("effects/click1")  # Test opening sound
         self.renderer.camera.slide(500, 100)
 
     def handle_events(self):
@@ -40,10 +48,11 @@ class Game:
                 self.running = False
             elif event.type == pg.WINDOWRESIZED:
                 self.settings.main.window_size = self.renderer.window.size
+            self.input_manager.process_event(event)
 
     def update(self, dt: float):
         self.background.update(dt)
-        self.renderer.camera.update(dt)
+        self.renderer.camera.update(dt, self.debug_controller.get_movement(), self.DEBUG_CAMERA_SPEED)
 
     def draw(self):
         # Draw the Window Background Color (Clear Screen)
@@ -59,7 +68,9 @@ class Game:
             dt = self.clock.tick(self.settings.main.fps) / 1000.0
 
             # Main logic
+            self.input_manager.begin_frame()
             self.handle_events()
+            self.input_manager.mouse_pos_virtual = self.renderer.window_to_virtual(self.input_manager.mouse_pos_window)
             self.update(dt)
             self.draw()
 

@@ -1,7 +1,7 @@
 from __future__ import annotations
 from pathlib import Path
 
-import pygame, pygame._sdl2.video as sdl2
+import pygame as pg, pygame._sdl2.video as sdl2
 from App.camera import Camera2D
 
 
@@ -24,9 +24,9 @@ class Sprite2D:
     ):
         self.texture = texture
 
-        self.position = pygame.Vector2(position) if position is not None else pygame.Vector2(0, 0)
-        self.scale = pygame.Vector2(scale) if scale is not None else pygame.Vector2(1, 1)
-        self.origin = pygame.Vector2(origin) if origin is not None else pygame.Vector2(0.5, 0.5)
+        self.position = pg.Vector2(position) if position is not None else pg.Vector2(0, 0)
+        self.scale = pg.Vector2(scale) if scale is not None else pg.Vector2(1, 1)
+        self.origin = pg.Vector2(origin) if origin is not None else pg.Vector2(0.5, 0.5)
 
         self.position_mode = position_mode
         self.rotation = rotation
@@ -51,6 +51,18 @@ class Renderer:
 
     def set_camera(self, camera: Camera2D):
         self.camera = camera
+
+    def window_to_virtual(self, pos):
+        x, y = pos
+        vx, vy, vw, vh, scale = self._get_letterbox()
+
+        # Outside the virtual display
+        if x < vx or x > vx + vw or y < vy or y > vy + vh:
+            return None
+
+        virtual_x = (x - vx) / scale
+        virtual_y = (y - vy) / scale
+        return pg.Vector2(virtual_x, virtual_y)
 
     def _get_letterbox(self):
         """
@@ -113,7 +125,7 @@ class Renderer:
 
     def load_texture(self, path: str | Path) -> Texture2D:
         # Load into a surface, then convert it into a SDL Texture (Then return Texture2D)
-        surface = pygame.image.load(path)
+        surface = pg.image.load(path)
         width, height = surface.get_size()
         texture = sdl2.Texture.from_surface(self.renderer, surface)
         # Already uses NEAREST scaling

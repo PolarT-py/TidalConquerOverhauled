@@ -1,4 +1,10 @@
+import pygame as pg
 from pygame import Vector2
+from App.input import InputManager
+from App.debug import debug_print
+
+
+debug_mode = False
 
 class Camera2D:
     def __init__(self, start_position=None):
@@ -8,11 +14,13 @@ class Camera2D:
         self.target_offset = Vector2(start_position) if start_position is not None else Vector2(0, 0)
         self.smoothing = True  # Camera Smoothing. Good for move() teleport type movements
         self.smoothness = 0.25  # Silly magic number. KEEP IT LIKE THIS!!!
-        self.DEBUG_CAMERA_SPEED = 500  # Only for debugging. Used to move camera (Outside)
 
-    def update(self, dt: float):
+    def update(self, dt: float, debug_movement=None, debug_camera_speed=500):
+        if debug_movement is not None:
+            self.slide(*debug_movement*debug_camera_speed*dt)
         if self.smoothing:
             self.offset += (self.target_offset - self.offset) / self.smoothness * dt
+        debug_print(self.offset, debug_mode)
 
     def move(self, pos: Vector2):
         if self.smoothing:
@@ -24,3 +32,24 @@ class Camera2D:
     def slide(self, x, y):
         # Move x y amount from current position
         self.move(self.target_offset + Vector2(x, y))
+
+
+class DebugCameraController:
+    def __init__(self, input_manager: InputManager):
+        self.input_manager = input_manager
+
+    def get_movement(self) -> Vector2:
+        movement = Vector2(0, 0)
+        if  self.input_manager.is_key_down(pg.K_i):
+            movement.y += 1
+        if  self.input_manager.is_key_down(pg.K_k):
+            movement.y -= 1
+        if  self.input_manager.is_key_down(pg.K_j):
+            movement.x += 1
+        if  self.input_manager.is_key_down(pg.K_l):
+            movement.x -= 1
+        # Normalize it (Movement speed equalized in all directions)
+        if movement.length_squared() > 0:
+            movement = movement.normalize()
+
+        return movement
