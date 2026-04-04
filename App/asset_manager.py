@@ -11,16 +11,14 @@ class AssetManager:
     def __init__(self, renderer, mixer):
         self.renderer = renderer
         self.mixer = mixer
-        self.library = {
-            "textures": {},
-            # Only stored textures.
-            # Audio is stored in the Mixer itself
-        }
+        self.library = {}
 
     def get(self, key):
-        if self.library[key] is not None:
-            return self.library[key]
-        debug_print("No such Key (Texture/Path)", debug_mode)
+        try:
+            if self.library[key] is not None:
+                return self.library[key]
+        except KeyError:
+            debug_print("No such Key (Texture/Path). ", debug_mode)
         return None
 
     def load_texture(self, path):
@@ -34,23 +32,26 @@ class AssetManager:
         debug_print(f'Loaded Texture: "{path}"', debug_mode)
 
     def load_audio(self, path):
+        # Get key name for library item
+        relative = path.relative_to(ASSETS_ROOT / "Audio")
+        key = relative.with_suffix("").as_posix()
         # Check for effects/music and separate them
         if path.parent.name == "effects":
-            self.mixer.load_sound(path)
+            self.mixer.load_sound(key, path)
         elif path.parent.name == "music":
-            self.mixer.load_music_track(path)
-        debug_print(f'Loaded Audio: "{path}"', debug_mode)
+            self.mixer.load_music_track(key, path)
+        debug_print(f'Loaded Audio: "{key}"', debug_mode)
 
     def load_all(self):
         # Load all the textures and audio files in ROOT/Assets/
-        for file in ASSETS_ROOT.rglob("*"):
-            if file.is_file():
-                # If the file is an image
-                if file.suffix == ".png":
-                    self.load_texture(file)
-                # If the file is an audio
-                if file.suffix == ".ogg":
-                    self.load_audio(file)
+        images_root = ASSETS_ROOT / "Images"
+        audio_root = ASSETS_ROOT / "Audio"
+        # Search Image Files
+        for file in images_root.rglob("*.png"):
+            self.load_texture(file)
+        # Search Audio Files
+        for file in audio_root.rglob("*.ogg"):
+            self.load_audio(file)
 
 if __name__ == "__main__":
     asset_manager = AssetManager(1, 1)  # Test with fake values (Deprecated)

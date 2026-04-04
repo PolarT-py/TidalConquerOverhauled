@@ -3,7 +3,7 @@ class Timer:
         self.duration = duration
         self.time_left = duration if start else 0.0
         self.repeat = repeat
-        self.finished = False
+        self.finished = False if start else True
 
     def update(self, dt: float):
         if self.finished and not self.repeat:

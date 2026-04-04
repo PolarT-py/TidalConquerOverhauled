@@ -14,8 +14,6 @@ class Texture2D:
         self.texture = texture
         self.size = size
 
-import pygame
-
 class Sprite2D:
     def __init__(
         self,

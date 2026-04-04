@@ -1,8 +1,7 @@
 from __future__ import annotations
-from pathlib import Path
 import pygame as pg
 from App.settings import load_settings, save_settings
-from App.renderer import Renderer, Sprite2D
+from App.renderer import Renderer
 from App.asset_manager import AssetManager
 from App.mixer import Mixer
 from World.background import Background
@@ -24,7 +23,7 @@ class Game:
         self.mixer.load_settings(self.settings)
         self.asset_manager = AssetManager(self.renderer, self.mixer)
         self.asset_manager.load_all()
-        self.mixer.play_sound("click1")  # Test opening sound
+        self.mixer.play_sound("effects/click1")  # Test opening sound
 
         self.clock = pg.time.Clock()
         self.running = True
@@ -62,7 +61,7 @@ class Game:
             self.draw()
 
             # Update the screen
-            pg.display.flip()  # In the future, change this to update when have to (Save GPU)
+            pg.display.flip()
 
         # Save settings and Quit game after loop stops
         save_settings(self.settings)

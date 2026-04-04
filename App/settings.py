@@ -7,7 +7,6 @@ except ModuleNotFoundError:
 
 
 # Create Classes
-
 @dataclass
 class MainSettings:
     window_size: tuple[int, int]
@@ -29,9 +28,11 @@ class Settings:
 
 
 # Set Paths
-
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 SETTINGS_FILE = PROJECT_ROOT / "settings.toml"
+
+if not SETTINGS_FILE.is_file():
+    raise FileNotFoundError(f"Missing settings file: {SETTINGS_FILE}")
 
 
 # Settings Loader
