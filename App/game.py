@@ -80,19 +80,19 @@ class Game:
             elif e.id == "resume_button":
                 self.running = False
             elif e.id == "credits_button":
-                self.scene_manager.set_scene("credits")
+                self.scene_manager.set_scene("credits", self.mixer)
                 self.renderer.camera.move(Vector2(-1280, 0))
             elif e.id == "settings_button":
-                self.scene_manager.set_scene("main_settings")
+                self.scene_manager.set_scene("main_settings", self.mixer)
                 self.renderer.camera.move(Vector2(1280, 0))
             # Credits Page
             elif e.id == "back_button_credits":
-                self.scene_manager.set_scene("main_menu")
+                self.scene_manager.set_scene("main_menu", self.mixer)
                 self.renderer.camera.move(Vector2(0, 0))
             # Settings Page
             elif e.id == "back_button_settings":
                 save_settings(self.settings)  # Save settings on back to Menu
-                self.scene_manager.set_scene("main_menu")
+                self.scene_manager.set_scene("main_menu", self.mixer)
                 self.renderer.camera.move(Vector2(0, 0))
             elif e.id == "vsync_toggle_button":
                 self.renderer.set_vsync(not self.settings.main.vsync)  # Kind of Hacky
