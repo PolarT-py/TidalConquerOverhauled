@@ -1,5 +1,4 @@
 from __future__ import annotations
-from dataclasses import dataclass
 
 import pygame as pg
 from pygame import Vector2
@@ -7,9 +6,9 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 from App.input import InputManager
 from App.asset_manager import AssetManager
+from App.mixer import Mixer
 
 if TYPE_CHECKING:
-    from App.ui_loader import SceneLibrary
     from App.renderer import Renderer, Texture2D
 
 
@@ -20,7 +19,7 @@ class UIElement:
         self.visible = True
         self.enabled = True
 
-    def update(self, dt):
+    def update(self, dt, mixer: Mixer):
         pass
 
     def draw(self, renderer, asset_manager):
@@ -32,9 +31,13 @@ class UIScene:
         self.name = name
         self.elements = []
 
-    def update_all(self, input_manager: InputManager):
+    def update_all(self, input_manager: InputManager, mixer: Mixer):
+        activated = []
+        # Search through all Elements to see which ones have been activated
         for e in self.elements:
-            e.update(input_manager)
+            if e.update(input_manager, mixer):
+                activated.append(e)
+        return activated
 
     def draw_all(self, renderer: Renderer, asset_manager: AssetManager):
         for e in self.elements:
@@ -55,8 +58,8 @@ class SceneManager:
         self.current_scene_name = scene_name
         self.current_scene = self.scenes[scene_name]
 
-    def update(self, input_manager):
-        self.current_scene.update_all(input_manager)
+    def update(self, input_manager, mixer):
+        return self.current_scene.update_all(input_manager, mixer)
 
     def draw(self, renderer, asset_manager):
         self.current_scene.draw_all(renderer, asset_manager)
@@ -77,7 +80,7 @@ class UIButton(UIElement):
         self.font = Font(text_font, text_size)
         self.text = Text(text, self.font)
 
-    def update(self, input_manager: InputManager):  # Returns if pressed/not
+    def update(self, input_manager: InputManager, mixer: Mixer):  # Returns if pressed/not
         # Fetch Mouse Position
         mouse_position = input_manager.mouse_pos_virtual
         if mouse_position is None:
@@ -97,6 +100,7 @@ class UIButton(UIElement):
         if input_manager.was_mouse_released(1):
             if self.hovered and self.pressed_inside:
                 self.pressed_inside = False
+                mixer.play_sound("effects/click1")
                 return True
             self.pressed_inside = False
         return False
@@ -162,7 +166,7 @@ class UILabel(UIElement):
         self.text = Text(text, self.font)
         self.draw_background = draw_background
 
-    def update(self, input_manager: InputManager):  # Returns if pressed/not
+    def update(self, input_manager: InputManager, mixer: Mixer):  # Returns if pressed/not
         self.rect.x, self.rect.y = self.position.x, self.position.y
 
     def draw(self, renderer, asset_manager):

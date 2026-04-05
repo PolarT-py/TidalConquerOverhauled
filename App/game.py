@@ -50,9 +50,7 @@ class Game:
         self.scene_manager = SceneManager(self.scene_library.scenes, "main_menu")
 
         # Set Actions
-        self.mixer.play_sound("effects/click1")  # Test opening sound
         self.mixer.play_music("music/Thatched Villagers")
-        # self.renderer.camera.slide(500, 100)  # Test Camera Movement
 
     def handle_events(self):
         for event in pg.event.get():
@@ -62,14 +60,29 @@ class Game:
                 self.settings.main.window_size = self.renderer.window.size
             self.input_manager.process_event(event)
 
+    def handle_ui_interactions(self):
+        for e in self.scene_manager.update(self.input_manager, self.mixer):
+            if e.id == "start_button":
+                self.running = False
+            elif e.id == "exit_button":
+                self.running = False
+            elif e.id == "resume_button":
+                self.running = False
+            elif e.id == "credits_button":
+                self.scene_manager.set_scene("credits")
+            elif e.id == "settings_button":
+                self.running = False
+            elif e.id == "back_button":
+                self.scene_manager.set_scene("main_menu")
+
     def update(self, dt: float):
         # Update Background Elements
         self.background.update(dt)
         # Reset Camera and Update Debug Camera
         self.renderer.reset_camera()
         self.renderer.camera.update(dt, self.debug_controller.get_movement(), self.DEBUG_CAMERA_SPEED)
-        # Update UI Scene
-        self.scene_manager.update(self.input_manager)
+        # Update UI Scene Functions
+        self.handle_ui_interactions()
 
     def draw(self):
         # Draw the Window Background Color (Clear Screen)
@@ -100,6 +113,10 @@ class Game:
 
             # Update the screen
             self.renderer.renderer.present()
+
+            # Check if stop run then quit
+            if not self.running:
+                pg.quit()
 
         # Save settings and Quit game after loop stops
         save_settings(self.settings)

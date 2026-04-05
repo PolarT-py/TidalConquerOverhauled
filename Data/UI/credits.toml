@@ -1,0 +1,94 @@
+name = "credits"
+
+[[elements]]
+id = "back_button"
+type = "texture_button"
+rect = [20, 20, 100, 50]
+texture = "buttons/backbutton"
+draw_background = false
+visible = true
+enabled = true
+
+[[elements]]
+id = "credit_l1"
+type = "label"
+position = [300, 120]
+text = "All Picture Graphics drawn by PolarTBlock"
+text_size = 32
+text_font = "PirataOne"
+text_color = [255, 255, 255, 255]
+draw_background = true
+visible = true
+enabled = true
+
+[[elements]]
+id = "credit_l2"
+type = "label"
+position = [300, 162]
+text = "All Sound Effects made by PolarTBlock"
+text_size = 32
+text_font = "PirataOne"
+text_color = [255, 255, 255, 255]
+draw_background = true
+visible = true
+enabled = true
+
+[[elements]]
+id = "credit_l3"
+type = "label"
+position = [300, 204]
+text = "Trapper Boat Idea from localmurderer"
+text_size = 32
+text_font = "PirataOne"
+text_color = [255, 255, 255, 255]
+draw_background = true
+visible = true
+enabled = true
+
+[[elements]]
+id = "credit_l4"
+type = "label"
+position = [300, 288]
+text = '"Thatched Villagers" Kevin MacLeod (incompetech.com)'
+text_size = 32
+text_font = "PirataOne"
+text_color = [255, 255, 255, 255]
+draw_background = true
+visible = true
+enabled = true
+
+[[elements]]
+id = "credit_l5"
+type = "label"
+position = [300, 330]
+text = 'Licensed under Creative Commons: By Attribution 4.0 License'
+text_size = 32
+text_font = "PirataOne"
+text_color = [255, 255, 255, 255]
+draw_background = true
+visible = true
+enabled = true
+
+[[elements]]
+id = "credit_l6"
+type = "label"
+position = [300, 372]
+text = 'http://creativecommons.org/licenses/by/4.0/ '
+text_size = 32
+text_font = "PirataOne"
+text_color = [255, 255, 255, 255]
+draw_background = true
+visible = true
+enabled = true
+
+[[elements]]
+id = "polartblock"
+type = "label"
+position = [1096, 685]
+text = "Made by PolarTBlock"
+text_size = 24
+text_font = "PirataOne"
+text_color = [255, 255, 255, 255]
+draw_background = true
+visible = true
+enabled = true
