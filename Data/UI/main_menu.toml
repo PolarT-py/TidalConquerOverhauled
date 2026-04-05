@@ -88,12 +88,13 @@ use_camera = true
 [[elements]]
 id = "polartblock"
 type = "label"
-position = [1096, 685]
-text = "Made by PolarTBlock"
+position = [1276, 685]
+text = " © 2026 PolarTea Studios "
 text_size = 24
 text_font = "PirataOne"
 text_color = [255, 255, 255, 255]
 draw_background = true
 visible = true
 enabled = true
+position_mode = "topright"
 use_camera = false

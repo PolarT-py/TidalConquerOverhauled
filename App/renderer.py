@@ -38,7 +38,14 @@ class Sprite2D:
 
 class Renderer:
     # Pygame-CE SDL2 Renderer
-    def __init__(self, window_size: tuple[int, int], render_size: tuple[int, int], main_title="Window"):
+    def __init__(self, window_size: tuple[int, int], render_size: tuple[int, int],
+                 main_title="Window", vsync=False, fullscreen=False, fps=60):
+        # Set trackers
+        self.is_fullscreen = fullscreen
+        self.is_vsync = vsync
+        self.fps = fps
+        # Values
+        self.FPS_OPTIONS = [30, 40, 60, 70, 80, 120, 144, 180, 240, 1000]
         # Set Window features
         self.virtual_size = render_size
         self.main_title = main_title
@@ -48,8 +55,10 @@ class Renderer:
             title=self.main_title,
             resizable=True,
         )
+        if self.is_fullscreen:  # Don't need to set as windowed, it's windowed by default
+            self.window.set_fullscreen()
         # Set Renderer
-        self.renderer = sdl2.Renderer(self.window, vsync=False)
+        self.renderer = sdl2.Renderer(self.window, vsync=vsync)
         self.renderer.draw_blend_mode = pg.BLENDMODE_BLEND  # Allow transparency in Rects and other shapes
         # Set Camera
         self.camera: Camera2D | None = None
@@ -57,6 +66,24 @@ class Renderer:
 
     def set_icon(self, icon):
         self.window.set_icon(icon)
+
+    def set_vsync(self, value):
+        # Set value
+        # Restart game to apply
+        # It applies when the game starts, and it grabs vsync from setting
+        # Update tracker
+        self.is_vsync = value
+
+    def toggle_fullscreen(self):
+        # Set value
+        if self.is_fullscreen:
+            self.window.set_windowed()
+            self.window.size = (1280, 720)  # Set to a size
+            self.window.position = sdl2.WINDOWPOS_CENTERED
+        else:
+            self.window.set_fullscreen(True)  # "True" here is desktop size, not Set fullscreen/not
+        # Update tracker
+        self.is_fullscreen = not self.is_fullscreen
 
     def set_camera(self, camera: Camera2D | None):
         self.camera = camera

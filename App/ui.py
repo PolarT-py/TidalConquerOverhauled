@@ -42,6 +42,18 @@ class UIScene:
         self.name = name
         self.elements = []
 
+    def call_ui_beginning_functions(self, settings):  # Run at start of game
+        for e in self.elements:
+            if e.id == "vsync_toggle_button":
+                e.text.content = f"Vsync:                  {str(settings.main.vsync)}"
+            elif e.id == "fps_change_button":
+                e.text.content = f"FPS:                    {str(settings.main.fps)}"
+            elif e.id == "fullscreen_toggle_button":
+                if settings.main.fullscreen:  # Fullscreen
+                    e.text.content = f"Display Mode: Fullscreen"
+                else:  # Windowed
+                    e.text.content = f"Display Mode: Windowed"
+
     def update_all(self, dt):
         activated = []
         # Search through all Elements to see which ones have been activated
@@ -62,6 +74,10 @@ class SceneManager:
         self.scenes: dict[str, UIScene] = scenes
         self.current_scene_name: str = start_scene
         self.current_scene: UIScene = scenes[start_scene]
+
+    def call_ui_beginning_functions(self, settings):
+        for scene in self.scenes.values():
+            scene.call_ui_beginning_functions(settings)
 
     def set_scene(self, scene_name: str):
         if scene_name not in self.scenes:
@@ -92,14 +108,16 @@ class UIButton(UIElement):
                  text="",
                  text_size=24,
                  text_font=None,
+                 position_mode="topleft",
                  use_camera=False):
         super().__init__(renderer, asset_manager, mixer, input_manager)
         self.rect = pg.Rect(rect)
         self.hovered = False
-        self.pressed_inside = False  # Prevent you from holding click from outside, drag in and release click
+        self.pressed_inside = False
         self.font = Font(text_font, text_size)
         self.text = Text(text, self.font)
         self.use_camera = use_camera
+        self.position_mode = position_mode
 
     def update(self, dt):  # Returns if pressed/not
         # Fetch Mouse Position
@@ -113,7 +131,7 @@ class UIButton(UIElement):
         if not self.enabled: return False
 
         # Check if mouse is hovering
-        new_rect = self.rect.copy()
+        new_rect = self.get_draw_rect()
         if self.use_camera:
             new_rect.x += self.renderer.camera.offset.x
             new_rect.y += self.renderer.camera.offset.y
@@ -122,7 +140,7 @@ class UIButton(UIElement):
             self.pressed_inside = True
 
         # Check if mouse is clicked
-        if self.input_manager.was_mouse_released(1):
+        if self.input_manager.was_mouse_pressed(1):
             if self.hovered and self.pressed_inside:
                 self.pressed_inside = False
                 self.mixer.play_sound("effects/click1")
@@ -130,16 +148,32 @@ class UIButton(UIElement):
             self.pressed_inside = False
         return False
 
+    def get_draw_rect(self):
+        x, y, w, h = self.rect
+
+        if self.position_mode == "center":
+            x -= w / 2
+            y -= h / 2
+        elif self.position_mode == "topright":
+            x -= w
+        elif self.position_mode != "topleft":
+            raise ValueError(f"Invalid position_mode: {self.position_mode}")
+
+        return pg.Rect(x, y, w, h)
+
     def draw(self):
         if self.visible:
-            # Draw Background
+            # Get draw Rect
+            draw_rect = self.get_draw_rect()
+
             if self.use_camera:
                 self.renderer.camera = self.renderer.main_camera
             else:
                 self.renderer.camera = None
 
+            # Draw Background
             color = (100, 100, 100, 100) if not (self.hovered and self.enabled) else (160, 160, 160, 100)
-            self.renderer.draw_rect(self.rect, color)
+            self.renderer.draw_rect(draw_rect, color)
 
             # Draw Text
             if self.text.content:
@@ -151,8 +185,8 @@ class UIButton(UIElement):
                 # Get size
                 text_w, text_h = font.size(self.text.content)
                 # Center text
-                center_x = self.rect.x + (self.rect.width - text_w) / 2
-                center_y = self.rect.y + (self.rect.height - text_h) / 2
+                center_x = draw_rect.x + (draw_rect.width - text_w) / 2
+                center_y = draw_rect.y + (draw_rect.height - text_h) / 2
 
                 self.renderer.draw_text(
                     self.text,
@@ -171,21 +205,26 @@ class UITextureButton(UIButton):
                  rect: tuple[int, int, int, int],
                  texture,
                  draw_background=False,
+                 position_mode="topleft",
                  use_camera=False):
         super().__init__(rect, renderer, asset_manager, mixer, input_manager)
         self.texture: Texture2D | None = texture
         self.draw_background = draw_background
+        self.position_mode = position_mode
         self.use_camera = use_camera
 
     def draw(self):
         if self.visible:
             # Calculate Center Of Button
-            x, y, w, h = self.rect
+            draw_rect = self.get_draw_rect()
+            x, y, w, h = draw_rect
+
             if self.use_camera:
                 self.renderer.camera = self.renderer.main_camera
             else:
                 self.renderer.camera = None
             center_pos = Vector2(x + w / 2, y + h / 2)
+
             # Draw Texture in the Center
             self.renderer.draw_texture(
                 self.texture,
@@ -194,10 +233,10 @@ class UITextureButton(UIButton):
                 scale=Vector2(1.0, 1.0),
                 position_mode="center",
             )
-            # If: want to draw Rect Background
+            # If: want to draw Rect Foreground (Debug/Hitbox Check)
             if self.draw_background:
                 color = (100, 100, 100, 100) if not (self.hovered and self.enabled) else (160, 160, 160, 100)
-                self.renderer.draw_rect(self.rect, color)
+                self.renderer.draw_rect(draw_rect, color)
 
 
 class UILabel(UIElement):

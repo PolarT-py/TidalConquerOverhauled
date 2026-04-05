@@ -1,9 +1,86 @@
 name = "main_settings"
 
+# Title
+[[elements]]
+id = "settings_title"
+type = "label"
+position = [-640, 100]
+text = "            Settings            "
+text_size = 128
+text_font = "PirataOne"
+text_color = [255, 255, 255, 255]
+draw_background = true
+visible = true
+enabled = true
+position_mode = "center"
+use_camera = true
+
+
+# Vsync Option
+[[elements]]
+id = "vsync_toggle_button"
+type = "button"
+rect = [-640, 250, 500, 50]
+text = "Vsync:                  ____"
+text_size = 38
+text_font = "PirataOne"
+text_color = [255, 255, 255, 255]
+visible = true
+enabled = true
+position_mode = "center"
+use_camera = true
+
+
+[[elements]]
+id = "vsync_text_warn"
+type = "label"
+position = [-200, 250]
+text = "  *Please Restart the Game to Apply*  "
+text_size = 28
+text_font = "PirataOne"
+text_color = [255, 50, 50, 255]
+draw_background = true
+visible = false
+enabled = true
+position_mode = "center"
+use_camera = true
+
+
+# FPS Option
+[[elements]]
+id = "fps_change_button"
+type = "button"
+rect = [-640, 310, 500, 50]
+text = "FPS:                    ____"
+text_size = 38
+text_font = "PirataOne"
+text_color = [255, 255, 255, 255]
+visible = true
+enabled = true
+position_mode = "center"
+use_camera = true
+
+
+# Fullscreen Option
+[[elements]]
+id = "fullscreen_toggle_button"
+type = "button"
+rect = [-640, 370, 500, 50]
+text = "Windowed Mode"
+text_size = 38
+text_font = "PirataOne"
+text_color = [255, 255, 255, 255]
+visible = true
+enabled = true
+position_mode = "center"
+use_camera = true
+
+
+# Other Stuff
 [[elements]]
 id = "back_button_settings"
 type = "texture_button"
-rect = [1150, 620, 100, 50]
+rect = [1165, 620, 100, 50]
 texture = "buttons/backbutton"
 draw_background = false
 visible = true
@@ -13,12 +90,13 @@ use_camera = false
 [[elements]]
 id = "polartblock"
 type = "label"
-position = [1096, 685]
-text = "Made by PolarTBlock"
+position = [1276, 685]
+text = " © 2026 PolarTea Studios "
 text_size = 24
 text_font = "PirataOne"
 text_color = [255, 255, 255, 255]
 draw_background = true
 visible = true
 enabled = true
+position_mode = "topright"
 use_camera = false

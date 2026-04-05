@@ -22,9 +22,12 @@ class Game:
         self.debug_mode = True
 
         self.renderer = Renderer(
-            self.settings.main.window_size,
-            self.settings.main.render_size,
-            self.settings.main.window_title
+            window_size=self.settings.main.window_size,
+            render_size=self.settings.main.render_size,
+            main_title=self.settings.main.window_title,
+            vsync=self.settings.main.vsync,
+            fullscreen=self.settings.main.fullscreen,
+            fps=self.settings.main.fps,
         )
         self.renderer.reset_camera()
         self.mixer = Mixer()
@@ -32,6 +35,9 @@ class Game:
         self.asset_manager = AssetManager(self.renderer, self.mixer)
         self.asset_manager.load_all()
         self.input_manager = InputManager()
+        self.scene_library = load_scenes(self.asset_manager, self.renderer, self.input_manager, self.mixer)
+        self.scene_manager = SceneManager(self.scene_library.scenes, "main_menu")
+        self.scene_manager.call_ui_beginning_functions(self.settings)
 
         self.clock = pg.time.Clock()
         self.running = True
@@ -46,8 +52,6 @@ class Game:
 
         # Set Objects
         self.background = Background(self.renderer, self.asset_manager)
-        self.scene_library = load_scenes(self.asset_manager, self.renderer, self.input_manager, self.mixer)
-        self.scene_manager = SceneManager(self.scene_library.scenes, "main_menu")
         self.test_money = 0
         self.test_text = UILabel(
             pg.Vector2(50, 20),
@@ -70,9 +74,11 @@ class Game:
                 self.running = False
             elif event.type == pg.WINDOWRESIZED:
                 self.settings.main.window_size = self.renderer.window.size
-            self.input_manager.process_event(event)
+            self.input_manager.process_event(event)  # Get input
 
     def handle_ui_interactions(self, dt):
+        # Search through all interactable UI Buttons to check if they're activated
+        # Do something if True
         for e in self.scene_manager.update(dt):
             # Main Menu
             if e.id == "start_button":
@@ -93,8 +99,34 @@ class Game:
                 self.renderer.camera.move(Vector2(0, 0))
             # Settings Page
             elif e.id == "back_button_settings":
+                save_settings(self.settings)  # Save settings on back to Menu
                 self.scene_manager.set_scene("main_menu")
                 self.renderer.camera.move(Vector2(0, 0))
+            elif e.id == "vsync_toggle_button":
+                self.renderer.set_vsync(not self.settings.main.vsync)  # Kind of Hacky
+                self.settings.main.vsync = not self.settings.main.vsync
+                self.scene_manager.get("vsync_toggle_button").text.content = f"Vsync:                  {str(self.settings.main.vsync)}"
+                self.scene_manager.get("vsync_text_warn").visible = True
+            elif e.id == "fps_change_button":
+                # Loop through the FPS Options
+                current = self.settings.main.fps
+                if current in self.renderer.FPS_OPTIONS:
+                    index = self.renderer.FPS_OPTIONS.index(current)
+                    new_index = (index + 1) % len(self.renderer.FPS_OPTIONS)
+                else:
+                    new_index = 2  # Fallback to 60 if something unique happens
+                new_fps = self.renderer.FPS_OPTIONS[new_index]
+                # Actually set it
+                self.renderer.fps = new_fps
+                self.settings.main.fps = new_fps
+                self.scene_manager.get("fps_change_button").text.content = f"FPS:                    {new_fps}"
+            elif e.id == "fullscreen_toggle_button":
+                self.renderer.toggle_fullscreen()
+                self.settings.main.fullscreen = not self.settings.main.fullscreen
+                if self.settings.main.fullscreen:  # Fullscreen
+                    e.text.content = f"Display Mode: Fullscreen"
+                else:  # Windowed
+                    e.text.content = f"Display Mode: Windowed"
 
     def update(self, dt: float):
         # Update Background Elements
@@ -126,7 +158,7 @@ class Game:
     def run(self):
         while self.running:
             # Set delta time
-            dt = self.clock.tick(self.settings.main.fps) / 1000.0
+            dt = self.clock.tick(self.renderer.fps) / 1000.0
 
             # Main logic
             self.input_manager.begin_frame()

@@ -1,5 +1,6 @@
 name = "credits"
 
+# Back Button
 [[elements]]
 id = "back_button_credits"
 type = "texture_button"
@@ -9,10 +10,12 @@ draw_background = false
 visible = true
 enabled = true
 
+
+# Credits
 [[elements]]
 id = "credit_l1"
 type = "label"
-position = [300, 120]
+position = [1580, 120]
 text = "All Picture Graphics drawn by PolarTBlock"
 text_size = 32
 text_font = "PirataOne"
@@ -20,11 +23,12 @@ text_color = [255, 255, 255, 255]
 draw_background = true
 visible = true
 enabled = true
+use_camera = true
 
 [[elements]]
 id = "credit_l2"
 type = "label"
-position = [300, 162]
+position = [1580, 162]
 text = "All Sound Effects made by PolarTBlock"
 text_size = 32
 text_font = "PirataOne"
@@ -32,11 +36,12 @@ text_color = [255, 255, 255, 255]
 draw_background = true
 visible = true
 enabled = true
+use_camera = true
 
 [[elements]]
 id = "credit_l3"
 type = "label"
-position = [300, 204]
+position = [1580, 204]
 text = "Trapper Boat Idea from localmurderer"
 text_size = 32
 text_font = "PirataOne"
@@ -44,11 +49,12 @@ text_color = [255, 255, 255, 255]
 draw_background = true
 visible = true
 enabled = true
+use_camera = true
 
 [[elements]]
 id = "credit_l4"
 type = "label"
-position = [300, 288]
+position = [1580, 288]
 text = '"Thatched Villagers" Kevin MacLeod (incompetech.com)'
 text_size = 32
 text_font = "PirataOne"
@@ -56,11 +62,12 @@ text_color = [255, 255, 255, 255]
 draw_background = true
 visible = true
 enabled = true
+use_camera = true
 
 [[elements]]
 id = "credit_l5"
 type = "label"
-position = [300, 330]
+position = [1580, 330]
 text = 'Licensed under Creative Commons: By Attribution 4.0 License'
 text_size = 32
 text_font = "PirataOne"
@@ -68,11 +75,12 @@ text_color = [255, 255, 255, 255]
 draw_background = true
 visible = true
 enabled = true
+use_camera = true
 
 [[elements]]
 id = "credit_l6"
 type = "label"
-position = [300, 372]
+position = [1580, 372]
 text = 'http://creativecommons.org/licenses/by/4.0/ '
 text_size = 32
 text_font = "PirataOne"
@@ -80,15 +88,20 @@ text_color = [255, 255, 255, 255]
 draw_background = true
 visible = true
 enabled = true
+use_camera = true
 
+
+# Other Stuff
 [[elements]]
 id = "polartblock"
 type = "label"
-position = [1096, 685]
-text = "Made by PolarTBlock"
+position = [1276, 685]
+text = " © 2026 PolarTea Studios "
 text_size = 24
 text_font = "PirataOne"
 text_color = [255, 255, 255, 255]
 draw_background = true
 visible = true
 enabled = true
+position_mode = "topright"
+use_camera = false

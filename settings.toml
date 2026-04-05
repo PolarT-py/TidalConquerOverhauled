@@ -4,6 +4,8 @@ window_title = "Tidal Conquer: Overhauled"
 window_bg_color = [16, 18, 17]
 render_size = [1280, 720] # DO NOT CHANGE
 fps = 60
+vsync = false
+fullscreen = false
 debug = false
 
 [audio]
