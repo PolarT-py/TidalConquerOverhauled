@@ -24,7 +24,7 @@ class Sprite2D:
         rotation=0.0,
         scale=None,
         origin=None,
-        position_mode="topleft"
+        position_mode="topleft"  # topleft center topright
     ):
         self.texture = texture
 
@@ -49,7 +49,7 @@ class Renderer:
             resizable=True,
         )
         # Set Renderer
-        self.renderer = sdl2.Renderer(self.window, vsync=True)
+        self.renderer = sdl2.Renderer(self.window, vsync=False)
         self.renderer.draw_blend_mode = pg.BLENDMODE_BLEND  # Allow transparency in Rects and other shapes
         # Set Camera
         self.camera: Camera2D | None = None
@@ -242,6 +242,7 @@ class Renderer:
             asset_manager: AssetManager,
             position: Vector2,
             text_size_override: tuple[int, int] | None = None,
+            position_mode: str = "topleft",
     ):
         # Check cache
         font_cache = asset_manager.library["font_cache"]
@@ -256,6 +257,16 @@ class Renderer:
             rendered_size = text_size_override
         else:
             rendered_size = rendered_surface.get_size()
+        # Anchor it based on position mode
+        tw, th = rendered_size
+        x, y = position
+        if position_mode == "center":
+            x -= tw / 2
+            y -= th / 2
+        elif position_mode == "topright":
+            x -= tw
+        elif position_mode != "topleft":
+            raise ValueError(f'Invalid position_mode: {position_mode}')
         # Draw it
         font_texture = sdl2.Texture.from_surface(self.renderer, rendered_surface)
-        self.draw_texture(Texture2D(font_texture, rendered_size), position)
+        self.draw_texture(Texture2D(font_texture, rendered_size), Vector2(x, y))

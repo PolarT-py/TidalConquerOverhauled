@@ -1,5 +1,6 @@
 from __future__ import annotations
 import pygame as pg
+from pygame import Vector2
 from pathlib import Path
 from App.settings import load_settings, save_settings
 from App.renderer import Renderer
@@ -7,9 +8,8 @@ from App.asset_manager import AssetManager
 from App.mixer import Mixer
 from App.camera import DebugCameraController
 from App.input import InputManager
-from App.ui import SceneManager
+from App.ui import SceneManager, UILabel
 from App.ui_loader import load_scenes
-from App.debug import debug_print
 from World.background import Background
 
 class Game:
@@ -48,6 +48,8 @@ class Game:
         self.background = Background(self.renderer, self.asset_manager)
         self.scene_library = load_scenes(self.asset_manager)
         self.scene_manager = SceneManager(self.scene_library.scenes, "main_menu")
+        self.test_money = 0
+        self.test_text = UILabel(pg.Vector2(50, 20), "0", position_mode="center", draw_background=True, text_font=self.asset_manager.get("fonts", "PirataOne"))
 
         # Set Actions
         self.mixer.play_music("music/Thatched Villagers")
@@ -61,7 +63,8 @@ class Game:
             self.input_manager.process_event(event)
 
     def handle_ui_interactions(self):
-        for e in self.scene_manager.update(self.input_manager, self.mixer):
+        for e in self.scene_manager.update(self.input_manager, self.mixer, self.renderer.camera.offset):
+            # Main Menu
             if e.id == "start_button":
                 self.running = False
             elif e.id == "exit_button":
@@ -70,10 +73,18 @@ class Game:
                 self.running = False
             elif e.id == "credits_button":
                 self.scene_manager.set_scene("credits")
+                self.renderer.camera.move(Vector2(-1280, 0))
             elif e.id == "settings_button":
-                self.running = False
-            elif e.id == "back_button":
+                self.scene_manager.set_scene("main_settings")
+                self.renderer.camera.move(Vector2(1280, 0))
+            # Credits Page
+            elif e.id == "back_button_credits":
                 self.scene_manager.set_scene("main_menu")
+                self.renderer.camera.move(Vector2(0, 0))
+            # Settings Page
+            elif e.id == "back_button_settings":
+                self.scene_manager.set_scene("main_menu")
+                self.renderer.camera.move(Vector2(0, 0))
 
     def update(self, dt: float):
         # Update Background Elements
@@ -83,6 +94,8 @@ class Game:
         self.renderer.camera.update(dt, self.debug_controller.get_movement(), self.DEBUG_CAMERA_SPEED)
         # Update UI Scene Functions
         self.handle_ui_interactions()
+        self.test_money += 1
+        self.test_text.text.content = str(self.test_money)
 
     def draw(self):
         # Draw the Window Background Color (Clear Screen)
@@ -92,8 +105,9 @@ class Game:
         # Draw Background (Sky and Sea)
         self.background.draw_all()
         # Set Camera to None to Draw UI
-        self.renderer.set_camera(None)
+        # self.renderer.set_camera(None)
         self.scene_manager.draw(self.renderer, self.asset_manager)
+        self.test_text.draw(self.renderer, self.asset_manager)
         # Draw Black Bars
         self.renderer.draw_bars(self.settings.main.window_bg_color)
         # Draw Debug UI

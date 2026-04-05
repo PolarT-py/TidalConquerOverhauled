@@ -1,7 +1,7 @@
 name = "credits"
 
 [[elements]]
-id = "back_button"
+id = "back_button_credits"
 type = "texture_button"
 rect = [20, 20, 100, 50]
 texture = "buttons/backbutton"

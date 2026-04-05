@@ -11,6 +11,7 @@ text_color = [255, 255, 255, 255]
 draw_background = true
 visible = true
 enabled = true
+use_camera = true
 
 [[elements]]
 id = "title_image"
@@ -20,6 +21,7 @@ position = [640, 300]
 anchor = "center"
 visible = true
 enabled = true
+use_camera = true
 
 [[elements]]
 id = "settings_button"
@@ -31,6 +33,7 @@ text_font = "PirataOne"
 text_color = [255, 255, 255, 255]
 visible = true
 enabled = true
+use_camera = false
 
 [[elements]]
 id = "start_button"
@@ -40,6 +43,7 @@ texture = "buttons/startbutton"
 draw_background = false
 visible = true
 enabled = true
+use_camera = true
 
 [[elements]]
 id = "resume_button"
@@ -49,6 +53,7 @@ texture = "buttons/continuebutton"
 draw_background = false
 visible = true
 enabled = true
+use_camera = true
 
 [[elements]]
 id = "exit_button"
@@ -58,6 +63,7 @@ texture = "buttons/exitbutton"
 draw_background = false
 visible = true
 enabled = true
+use_camera = true
 
 [[elements]]
 id = "credits_button"
@@ -67,6 +73,7 @@ texture = "buttons/creditsbutton"
 draw_background = false
 visible = true
 enabled = true
+use_camera = false
 
 [[elements]]
 id = "tutorial"
@@ -76,6 +83,7 @@ position = [1000, 550]
 anchor = "center"
 visible = true
 enabled = true
+use_camera = true
 
 [[elements]]
 id = "polartblock"
@@ -88,3 +96,4 @@ text_color = [255, 255, 255, 255]
 draw_background = true
 visible = true
 enabled = true
+use_camera = false

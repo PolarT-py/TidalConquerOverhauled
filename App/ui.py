@@ -13,13 +13,14 @@ if TYPE_CHECKING:
 
 
 class UIElement:
-    def __init__(self):
+    def __init__(self, use_camera=False):
         self.id = None
         self.rect = None
         self.visible = True
         self.enabled = True
+        self.use_camera = use_camera
 
-    def update(self, dt, mixer: Mixer):
+    def update(self, dt, mixer: Mixer, camera_offset=(0, 0)):
         pass
 
     def draw(self, renderer, asset_manager):
@@ -31,11 +32,11 @@ class UIScene:
         self.name = name
         self.elements = []
 
-    def update_all(self, input_manager: InputManager, mixer: Mixer):
+    def update_all(self, input_manager: InputManager, mixer: Mixer, camera_offset):
         activated = []
         # Search through all Elements to see which ones have been activated
         for e in self.elements:
-            if e.update(input_manager, mixer):
+            if e.update(input_manager, mixer, camera_offset):
                 activated.append(e)
         return activated
 
@@ -58,8 +59,8 @@ class SceneManager:
         self.current_scene_name = scene_name
         self.current_scene = self.scenes[scene_name]
 
-    def update(self, input_manager, mixer):
-        return self.current_scene.update_all(input_manager, mixer)
+    def update(self, input_manager, mixer, camera_offset):
+        return self.current_scene.update_all(input_manager, mixer, camera_offset)
 
     def draw(self, renderer, asset_manager):
         self.current_scene.draw_all(renderer, asset_manager)
@@ -72,15 +73,16 @@ class SceneManager:
 
 
 class UIButton(UIElement):
-    def __init__(self, rect: tuple[int, int, int, int], text="", text_size=24, text_font=None):
+    def __init__(self, rect: tuple[int, int, int, int], text="", text_size=24, text_font=None, use_camera=False):
         super().__init__()
         self.rect = pg.Rect(rect)
         self.hovered = False
         self.pressed_inside = False  # Prevent you from holding click from outside, drag in and release click
         self.font = Font(text_font, text_size)
         self.text = Text(text, self.font)
+        self.use_camera = use_camera
 
-    def update(self, input_manager: InputManager, mixer: Mixer):  # Returns if pressed/not
+    def update(self, input_manager: InputManager, mixer: Mixer, camera_offset=(0, 0)):  # Returns if pressed/not
         # Fetch Mouse Position
         mouse_position = input_manager.mouse_pos_virtual
         if mouse_position is None:
@@ -92,7 +94,11 @@ class UIButton(UIElement):
         if not self.enabled: return False
 
         # Check if mouse is hovering
-        self.hovered = self.rect.collidepoint(mx, my)
+        new_rect = self.rect.copy()
+        if self.use_camera:
+            new_rect.x += camera_offset[0]
+            new_rect.y += camera_offset[1]
+        self.hovered = new_rect.collidepoint(mx, my)
         if self.hovered and input_manager.was_mouse_pressed(1):
             self.pressed_inside = True
 
@@ -105,9 +111,14 @@ class UIButton(UIElement):
             self.pressed_inside = False
         return False
 
-    def draw(self, renderer, asset_manager):
+    def draw(self, renderer, asset_manager, camera_offset=(0, 0)):
         if self.visible:
             # Draw Background
+            if self.use_camera:
+                renderer.camera = renderer.main_camera
+            else:
+                renderer.camera = None
+
             color = (100, 100, 100, 100) if not (self.hovered and self.enabled) else (160, 160, 160, 100)
             renderer.draw_rect(self.rect, color)
 
@@ -133,15 +144,20 @@ class UIButton(UIElement):
 
 
 class UITextureButton(UIButton):
-    def __init__(self, rect: tuple[int, int, int, int], texture, draw_background=False):
+    def __init__(self, rect: tuple[int, int, int, int], texture, draw_background=False, use_camera=False):
         super().__init__(rect)
         self.texture: Texture2D | None = texture
         self.draw_background = draw_background
+        self.use_camera = use_camera
 
-    def draw(self, renderer, asset_manager):
+    def draw(self, renderer, asset_manager, camera_offset=(0, 0)):
         if self.visible:
             # Calculate Center Of Button
             x, y, w, h = self.rect
+            if self.use_camera:
+                renderer.camera = renderer.main_camera
+            else:
+                renderer.camera = None
             center_pos = Vector2(x + w / 2, y + h / 2)
             # Draw Texture in the Center
             renderer.draw_texture(
@@ -158,18 +174,33 @@ class UITextureButton(UIButton):
 
 
 class UILabel(UIElement):
-    def __init__(self, position, text="", text_size=24, text_font=None, draw_background=False):
+    def __init__(self, position, text, text_size=24, text_font=None, draw_background=False, position_mode="topleft", use_camera=False):
         super().__init__()
         self.position: Vector2 = Vector2(position)
         self.rect = pg.Rect(self.position.x, self.position.y, 0, 0)
         self.font = Font(text_font, text_size)
         self.text = Text(text, self.font)
         self.draw_background = draw_background
+        self.position_mode = position_mode
+        self.use_camera = use_camera
 
-    def update(self, input_manager: InputManager, mixer: Mixer):  # Returns if pressed/not
-        self.rect.x, self.rect.y = self.position.x, self.position.y
+    def update_rect(self, text_w, text_h):
+        x, y = self.position.x, self.position.y
 
-    def draw(self, renderer, asset_manager):
+        if self.position_mode == "center":
+            x -= text_w / 2
+            y -= text_h / 2
+        elif self.position_mode == "topright":
+            x -= text_w
+        elif self.position_mode != "topleft":
+            raise ValueError(f"Invalid position_mode: {self.position_mode}")
+
+        self.rect.x = x
+        self.rect.y = y
+        self.rect.width = text_w
+        self.rect.height = text_h
+
+    def draw(self, renderer, asset_manager, camera_offset=(0, 0)):
         if self.visible:
             if self.text.content:
                 font_cache = asset_manager.library["font_cache"]
@@ -181,32 +212,45 @@ class UILabel(UIElement):
                 text_w, text_h = font.size(self.text.content)
 
                 # Update rect size
-                self.rect.width = text_w
-                self.rect.height = text_h
+                self.update_rect(text_w, text_h)
 
                 # Draw Background
                 if self.draw_background:
+                    if self.use_camera:
+                        renderer.camera = renderer.main_camera
+                    else:
+                        renderer.camera = None
                     color = (100, 100, 100, 100)
                     renderer.draw_rect(self.rect, color)
 
                 # Draw Text
+                if self.use_camera:
+                    renderer.camera = renderer.main_camera
+                else:
+                    renderer.camera = None
                 renderer.draw_text(
                     self.text,
                     asset_manager,
-                    Vector2(self.rect.x, self.rect.y),
-                    text_size_override=(text_w, text_h)
+                    self.position,
+                    text_size_override=(text_w, text_h),
+                    position_mode=self.position_mode
                 )
 
 
 class UITexture(UIElement):
-    def __init__(self, texture, position, anchor="topleft"):
+    def __init__(self, texture, position, anchor="topleft", use_camera=False):
         super().__init__()
         self.texture = texture
         self.position: Vector2 = position
         self.anchor = anchor
+        self.use_camera = use_camera
 
-    def draw(self, renderer, asset_manager):
+    def draw(self, renderer, asset_manager, camera_offset=(0, 0)):
         if self.visible:
+            if self.use_camera:
+                renderer.camera = renderer.main_camera
+            else:
+                renderer.camera = None
             renderer.draw_texture(
                 self.texture,
                 pos=self.position,

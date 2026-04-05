@@ -6,7 +6,7 @@ from pygame import Vector2
 class Background:
     def __init__(self, renderer, asset_manager):
         # Initialize Sprites
-        self.sky: Sprite2D = None
+        self.sky: Sprite2D | None = None
         # Sea is not a sprite
         # self.lanes = None
 
@@ -17,7 +17,7 @@ class Background:
         (70, 214, 242),
         )
         self.current_sea_color = self.sea_colors[self.animation_state]
-        self.animation_state_change_timer: Timer = Timer(1.0, start=True, repeat=True)
+        self.animation_state_change_timer: Timer = Timer(60/95*2, start=True, repeat=True)  # Cuz music is 95BPM
 
         # Set renderer and asset library and load sprites
         self.renderer: Renderer = renderer
@@ -51,5 +51,10 @@ class Background:
 
     def draw_all(self):
         self.renderer.fill(self.current_sea_color)  # Draw Sea
+        self.sky.position.x = 0
         self.renderer.draw_sprite(self.sky)  # Draw Sky
+        self.sky.position.x = 1280
+        self.renderer.draw_sprite(self.sky)  # Draw Sky on the Right side
+        self.sky.position.x = -1280
+        self.renderer.draw_sprite(self.sky)  # Draw Sky on the Left side
         # self.renderer.draw_sprite(self.lanes)

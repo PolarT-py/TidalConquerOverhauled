@@ -58,6 +58,7 @@ def load_scenes(asset_manager: AssetManager) -> SceneLibrary:
                     text=e.get("text", "Text Template"),
                     text_size=e.get("text_size", 24),
                     text_font=font_path,
+                    use_camera=e.get("use_camera", False),
                 )
                 built_element.text.color = _parse_color(e.get("text_color"))
                 built_element.visible = e.get("visible", True)
@@ -71,6 +72,7 @@ def load_scenes(asset_manager: AssetManager) -> SceneLibrary:
                     rect=tuple(e["rect"]),
                     texture=texture,
                     draw_background=e.get("draw_background", False),
+                    use_camera=e.get("use_camera", False),
                 )
                 built_element.visible = e.get("visible", True)
                 built_element.enabled = e.get("enabled", True)
@@ -85,6 +87,8 @@ def load_scenes(asset_manager: AssetManager) -> SceneLibrary:
                     text_size=e.get("text_size", 24),
                     text_font=font_path,
                     draw_background=e.get("draw_background", False),
+                    position_mode=e.get("position_mode", "topleft"),
+                    use_camera=e.get("use_camera", False),
                 )
                 built_element.text.color = _parse_color(e.get("text_color"))
                 built_element.visible = e.get("visible", True)
@@ -98,6 +102,7 @@ def load_scenes(asset_manager: AssetManager) -> SceneLibrary:
                     texture=texture,
                     position=Vector2(e.get("position", (0, 0))),
                     anchor=e.get("anchor", "topleft"),
+                    use_camera=e.get("use_camera", False),
                 )
                 built_element.visible = e.get("visible", True)
                 built_element.enabled = e.get("enabled", True)

@@ -1,0 +1,24 @@
+name = "main_settings"
+
+[[elements]]
+id = "back_button_settings"
+type = "texture_button"
+rect = [1150, 620, 100, 50]
+texture = "buttons/backbutton"
+draw_background = false
+visible = true
+enabled = true
+use_camera = false
+
+[[elements]]
+id = "polartblock"
+type = "label"
+position = [1096, 685]
+text = "Made by PolarTBlock"
+text_size = 24
+text_font = "PirataOne"
+text_color = [255, 255, 255, 255]
+draw_background = true
+visible = true
+enabled = true
+use_camera = false
