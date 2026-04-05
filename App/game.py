@@ -68,8 +68,8 @@ class Game:
         # Reset Camera and Update Debug Camera
         self.renderer.reset_camera()
         self.renderer.camera.update(dt, self.debug_controller.get_movement(), self.DEBUG_CAMERA_SPEED)
-        # Update Test Scene
-        self.scene_manager.current_scene.update_all(self.input_manager)
+        # Update UI Scene
+        self.scene_manager.update(self.input_manager)
 
     def draw(self):
         # Draw the Window Background Color (Clear Screen)
@@ -80,7 +80,7 @@ class Game:
         self.background.draw_all()
         # Set Camera to None to Draw UI
         self.renderer.set_camera(None)
-        self.scene_manager.current_scene.draw_all(self.renderer, self.asset_manager)
+        self.scene_manager.draw(self.renderer, self.asset_manager)
         # Draw Black Bars
         self.renderer.draw_bars(self.settings.main.window_bg_color)
         # Draw Debug UI
