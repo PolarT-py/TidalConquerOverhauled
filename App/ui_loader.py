@@ -3,6 +3,9 @@ from pathlib import Path
 from pygame import Vector2
 from App.ui import UIScene, UIButton, UITextureButton, UILabel, UITexture
 from App.asset_manager import AssetManager
+from App.renderer import Renderer
+from App.mixer import Mixer
+from App.input import InputManager
 
 try:
     import tomllib
@@ -27,7 +30,12 @@ def _parse_color(value, default=(255, 255, 255, 255)):
 
 
 # Scenes Loader
-def load_scenes(asset_manager: AssetManager) -> SceneLibrary:
+def load_scenes(
+        asset_manager: AssetManager,
+        renderer: Renderer,
+        input_manager: InputManager,
+        mixer: Mixer,
+) -> SceneLibrary:
     scene_library = SceneLibrary(scenes={})
 
     for file in DATA_ROOT.rglob("*.toml"):
@@ -54,6 +62,10 @@ def load_scenes(asset_manager: AssetManager) -> SceneLibrary:
                 font_path = asset_manager.get("fonts", font_key) if font_key else None
 
                 built_element = UIButton(
+                    renderer=renderer,
+                    asset_manager=asset_manager,
+                    mixer=mixer,
+                    input_manager=input_manager,
                     rect=tuple(e["rect"]),
                     text=e.get("text", "Text Template"),
                     text_size=e.get("text_size", 24),
@@ -69,6 +81,10 @@ def load_scenes(asset_manager: AssetManager) -> SceneLibrary:
                 texture = asset_manager.get("textures", texture_key) if texture_key else None
 
                 built_element = UITextureButton(
+                    renderer=renderer,
+                    asset_manager=asset_manager,
+                    mixer=mixer,
+                    input_manager=input_manager,
                     rect=tuple(e["rect"]),
                     texture=texture,
                     draw_background=e.get("draw_background", False),
@@ -82,6 +98,10 @@ def load_scenes(asset_manager: AssetManager) -> SceneLibrary:
                 font_path = asset_manager.get("fonts", font_key) if font_key else None
 
                 built_element = UILabel(
+                    renderer=renderer,
+                    asset_manager=asset_manager,
+                    mixer=mixer,
+                    input_manager=input_manager,
                     position=tuple(e.get("position", (0, 0))),
                     text=e.get("text", ""),
                     text_size=e.get("text_size", 24),
@@ -99,6 +119,10 @@ def load_scenes(asset_manager: AssetManager) -> SceneLibrary:
                 texture = asset_manager.get("textures", texture_key) if texture_key else None
 
                 built_element = UITexture(
+                    renderer=renderer,
+                    asset_manager=asset_manager,
+                    mixer=mixer,
+                    input_manager=input_manager,
                     texture=texture,
                     position=Vector2(e.get("position", (0, 0))),
                     anchor=e.get("anchor", "topleft"),

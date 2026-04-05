@@ -46,10 +46,20 @@ class Game:
 
         # Set Objects
         self.background = Background(self.renderer, self.asset_manager)
-        self.scene_library = load_scenes(self.asset_manager)
+        self.scene_library = load_scenes(self.asset_manager, self.renderer, self.input_manager, self.mixer)
         self.scene_manager = SceneManager(self.scene_library.scenes, "main_menu")
         self.test_money = 0
-        self.test_text = UILabel(pg.Vector2(50, 20), "0", position_mode="center", draw_background=True, text_font=self.asset_manager.get("fonts", "PirataOne"))
+        self.test_text = UILabel(
+            pg.Vector2(50, 20),
+            "0",
+            position_mode="center",
+            draw_background=True,
+            text_font=self.asset_manager.get("fonts", "PirataOne"),
+            renderer = self.renderer,
+            asset_manager = self.asset_manager,
+            mixer = self.mixer,
+            input_manager = self.input_manager,
+        )
 
         # Set Actions
         self.mixer.play_music("music/Thatched Villagers")
@@ -62,8 +72,8 @@ class Game:
                 self.settings.main.window_size = self.renderer.window.size
             self.input_manager.process_event(event)
 
-    def handle_ui_interactions(self):
-        for e in self.scene_manager.update(self.input_manager, self.mixer, self.renderer.camera.offset):
+    def handle_ui_interactions(self, dt):
+        for e in self.scene_manager.update(dt):
             # Main Menu
             if e.id == "start_button":
                 self.running = False
@@ -93,7 +103,7 @@ class Game:
         self.renderer.reset_camera()
         self.renderer.camera.update(dt, self.debug_controller.get_movement(), self.DEBUG_CAMERA_SPEED)
         # Update UI Scene Functions
-        self.handle_ui_interactions()
+        self.handle_ui_interactions(dt)
         self.test_money += 1
         self.test_text.text.content = str(self.test_money)
 
@@ -106,8 +116,8 @@ class Game:
         self.background.draw_all()
         # Set Camera to None to Draw UI
         # self.renderer.set_camera(None)
-        self.scene_manager.draw(self.renderer, self.asset_manager)
-        self.test_text.draw(self.renderer, self.asset_manager)
+        self.scene_manager.draw()
+        self.test_text.draw()
         # Draw Black Bars
         self.renderer.draw_bars(self.settings.main.window_bg_color)
         # Draw Debug UI
