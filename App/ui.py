@@ -41,6 +41,7 @@ class UIScene:
     def __init__(self, name):
         self.name = name
         self.elements = []
+        self.visible = True
 
     def call_ui_beginning_functions(self, settings):  # Run at start of game
         for e in self.elements:
@@ -63,8 +64,9 @@ class UIScene:
         return activated
 
     def draw_all(self):
-        for e in self.elements:
-            e.draw()
+        if self.visible:
+            for e in self.elements:
+                e.draw()
 
 
 class SceneManager:

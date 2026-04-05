@@ -8,7 +8,7 @@ from App.asset_manager import AssetManager
 from App.mixer import Mixer
 from App.camera import DebugCameraController
 from App.input import InputManager
-from App.ui import SceneManager, UILabel
+from App.ui import SceneManager, UIScene
 from App.ui_loader import load_scenes
 from World.background import Background
 
@@ -19,7 +19,7 @@ class Game:
 
         # Initialize pygame and Essentials
         pg.init()
-        self.debug_mode = True
+        self.debug_mode = False
 
         self.renderer = Renderer(
             window_size=self.settings.main.window_size,
@@ -35,15 +35,19 @@ class Game:
         self.asset_manager = AssetManager(self.renderer, self.mixer)
         self.asset_manager.load_all()
         self.input_manager = InputManager()
-        self.scene_library = load_scenes(self.asset_manager, self.renderer, self.input_manager, self.mixer)
+        self.scene_library = load_scenes(self.asset_manager, self.renderer,
+                                         self.input_manager, self.mixer)
         self.scene_manager = SceneManager(self.scene_library.scenes, "main_menu")
         self.scene_manager.call_ui_beginning_functions(self.settings)
+        self.debug_menu = UIScene("debug_menu")
+        self.debug_menu.elements = self.scene_library.scenes.get("debug_menu").elements
 
         self.clock = pg.time.Clock()
         self.running = True
 
         # Set Window Icon
-        icon = pg.image.load(Path(__file__).resolve().parent.parent.joinpath("Assets/Images/misc/coin.png"))
+        icon = pg.image.load(Path(__file__).resolve().parent.parent.joinpath\
+                                 ("Assets/Images/misc/coin.png"))
         self.renderer.set_icon(icon)
 
         # Set Input Controllers
@@ -52,18 +56,6 @@ class Game:
 
         # Set Objects
         self.background = Background(self.renderer, self.asset_manager)
-        self.test_money = 0
-        self.test_text = UILabel(
-            pg.Vector2(50, 20),
-            "0",
-            position_mode="center",
-            draw_background=True,
-            text_font=self.asset_manager.get("fonts", "PirataOne"),
-            renderer = self.renderer,
-            asset_manager = self.asset_manager,
-            mixer = self.mixer,
-            input_manager = self.input_manager,
-        )
 
         # Set Actions
         self.mixer.play_music("music/Thatched Villagers")
@@ -105,7 +97,8 @@ class Game:
             elif e.id == "vsync_toggle_button":
                 self.renderer.set_vsync(not self.settings.main.vsync)  # Kind of Hacky
                 self.settings.main.vsync = not self.settings.main.vsync
-                self.scene_manager.get("vsync_toggle_button").text.content = f"Vsync:                  {str(self.settings.main.vsync)}"
+                self.scene_manager.get("vsync_toggle_button").text.content =\
+                    f"Vsync:                  {str(self.settings.main.vsync)}"
                 self.scene_manager.get("vsync_text_warn").visible = True
             elif e.id == "fps_change_button":
                 # Loop through the FPS Options
@@ -119,7 +112,8 @@ class Game:
                 # Actually set it
                 self.renderer.fps = new_fps
                 self.settings.main.fps = new_fps
-                self.scene_manager.get("fps_change_button").text.content = f"FPS:                    {new_fps}"
+                self.scene_manager.get("fps_change_button").text.content =\
+                    f"FPS:                    {new_fps}"
             elif e.id == "fullscreen_toggle_button":
                 self.renderer.toggle_fullscreen()
                 self.settings.main.fullscreen = not self.settings.main.fullscreen
@@ -127,17 +121,24 @@ class Game:
                     e.text.content = f"Display Mode: Fullscreen"
                 else:  # Windowed
                     e.text.content = f"Display Mode: Windowed"
+        # Update Debug Elements every frame
+        for e in self.debug_menu.elements:
+            if e.id == "debug_fps":
+                e.text.content = f" FPS: {round(self.clock.get_fps(), 1)} "
+        # Check if toggle Debug Mode
+        if self.input_manager.was_key_pressed(pg.K_F3):
+            self.debug_mode = not self.debug_mode
 
     def update(self, dt: float):
         # Update Background Elements
         self.background.update(dt)
         # Reset Camera and Update Debug Camera
         self.renderer.reset_camera()
-        self.renderer.camera.update(dt, self.debug_controller.get_movement(), self.DEBUG_CAMERA_SPEED)
+        if self.debug_mode:
+            self.renderer.camera.update(dt, self.debug_controller.get_movement(), self.DEBUG_CAMERA_SPEED)
         # Update UI Scene Functions
         self.handle_ui_interactions(dt)
-        self.test_money += 1
-        self.test_text.text.content = str(self.test_money)
+        self.debug_menu.update_all(dt)
 
     def draw(self):
         # Draw the Window Background Color (Clear Screen)
@@ -146,14 +147,13 @@ class Game:
         self.renderer.reset_camera()
         # Draw Background (Sky and Sea)
         self.background.draw_all()
-        # Set Camera to None to Draw UI
-        # self.renderer.set_camera(None)
+        # Draw UI
         self.scene_manager.draw()
-        self.test_text.draw()
         # Draw Black Bars
         self.renderer.draw_bars(self.settings.main.window_bg_color)
         # Draw Debug UI
-        # Not implemented Yet
+        if self.debug_mode:
+            self.debug_menu.draw_all()
 
     def run(self):
         while self.running:
@@ -163,7 +163,8 @@ class Game:
             # Main logic
             self.input_manager.begin_frame()
             self.handle_events()
-            self.input_manager.mouse_pos_virtual = self.renderer.window_to_virtual(self.input_manager.mouse_pos_window)
+            self.input_manager.mouse_pos_virtual = self.renderer.window_to_virtual(
+                self.input_manager.mouse_pos_window)
             self.update(dt)
             self.draw()
 

@@ -1,0 +1,47 @@
+name = "debug_menu"
+
+# Test Button 1
+[[elements]]
+id = "debug_test_button_1"
+type = "button"
+rect = [1275, 5, 125, 50]
+text = "Test Button 1"
+text_size = 24
+text_font = "PirataOne"
+text_color = [255, 255, 255, 255]
+visible = true
+enabled = true
+position_mode = "topright"
+use_camera = false
+
+
+# FPS
+[[elements]]
+id = "debug_fps"
+type = "label"
+position = [5, 5]
+text = " FPS: 69 "
+text_size = 24
+text_font = "PirataOne"
+text_color = [255, 255, 255, 255]
+draw_background = true
+visible = true
+enabled = true
+position_mode = "topleft"
+use_camera = false
+
+
+# Other Stuff
+[[elements]]
+id = "polartblock"
+type = "label"
+position = [1276, 654]
+text = " F3 Debug Menu Active "
+text_size = 24
+text_font = "PirataOne"
+text_color = [255, 255, 255, 255]
+draw_background = true
+visible = true
+enabled = true
+position_mode = "topright"
+use_camera = false
