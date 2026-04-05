@@ -134,8 +134,10 @@ class Game:
         self.background.update(dt)
         # Reset Camera and Update Debug Camera
         self.renderer.reset_camera()
+        self.renderer.camera.update(dt)
         if self.debug_mode:
-            self.renderer.camera.update(dt, self.debug_controller.get_movement(), self.DEBUG_CAMERA_SPEED)
+            self.renderer.camera.debug_update(
+                dt, self.debug_controller.get_movement(), self.DEBUG_CAMERA_SPEED)
         # Update UI Scene Functions
         self.handle_ui_interactions(dt)
         self.debug_menu.update_all(dt)

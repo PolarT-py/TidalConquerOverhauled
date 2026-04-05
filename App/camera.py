@@ -15,12 +15,14 @@ class Camera2D:
         self.smoothing = True  # Camera Smoothing. Good for move() teleport type movements
         self.smoothness = smoothness
 
-    def update(self, dt: float, debug_movement=None, debug_camera_speed=500):
-        if debug_movement is not None:
-            self.slide(*debug_movement*debug_camera_speed*dt)
+    def update(self, dt: float):
         if self.smoothing:
             self.offset += (self.target_offset - self.offset) * self.smoothness * dt
         debug_print(self.offset, debug_mode)
+
+    def debug_update(self, dt: float, debug_movement=None, debug_camera_speed=500):
+        if debug_movement is not None:
+            self.slide(*debug_movement*debug_camera_speed*dt)
 
     def move(self, pos: Vector2, smoothness=5):
         self.smoothness = smoothness
