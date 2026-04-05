@@ -26,7 +26,7 @@ class Background:
 
     def load_all_sprites(self):
         self.sky = Sprite2D(
-            self.asset_manager.get("bg/bg1"),
+            self.asset_manager.get("textures", "bg/bg1"),
             position=Vector2(0, 0),
             rotation=0.0,
             scale=Vector2(1.28, 1.28),
@@ -41,13 +41,13 @@ class Background:
         # )
 
     def update(self, dt):
-        # Check if it can update animation
-        self.sky.rotation += 1
+        # Test Check if it can update animation
+        # self.sky.rotation += 1
         if self.animation_state_change_timer.update(dt):
             # Flip animation state
             self.animation_state ^= 1
             self.current_sea_color = self.sea_colors[self.animation_state]
-            self.sky.texture = self.asset_manager.get(f"bg/bg{self.animation_state+1}")
+            self.sky.texture = self.asset_manager.get("textures", f"bg/bg{self.animation_state+1}")
 
     def draw_all(self):
         self.renderer.fill(self.current_sea_color)  # Draw Sea

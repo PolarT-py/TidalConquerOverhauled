@@ -2,7 +2,10 @@ from __future__ import annotations
 from pathlib import Path
 
 import pygame as pg, pygame._sdl2.video as sdl2
+from pygame import Vector2
 from App.camera import Camera2D
+from App.asset_manager import AssetManager
+from App.ui import Text
 
 
 class Texture2D:
@@ -11,6 +14,7 @@ class Texture2D:
     def __init__(self, texture: sdl2.Texture, size: tuple[int, int]) -> None:
         self.texture = texture
         self.size = size
+        self.texture.blend_mode = pg.BLENDMODE_BLEND  # Allows transparent textures
 
 class Sprite2D:
     def __init__(
@@ -34,7 +38,7 @@ class Sprite2D:
 
 class Renderer:
     # Pygame-CE SDL2 Renderer
-    def __init__(self, window_size: tuple[int, int], render_size: tuple[int, int], main_title="Window") -> None:
+    def __init__(self, window_size: tuple[int, int], render_size: tuple[int, int], main_title="Window"):
         # Set Window features
         self.virtual_size = render_size
         self.main_title = main_title
@@ -46,11 +50,19 @@ class Renderer:
         )
         # Set Renderer
         self.renderer = sdl2.Renderer(self.window, vsync=True)
+        self.renderer.draw_blend_mode = pg.BLENDMODE_BLEND  # Allow transparency in Rects and other shapes
         # Set Camera
         self.camera: Camera2D | None = None
+        self.main_camera: Camera2D = Camera2D()
 
-    def set_camera(self, camera: Camera2D):
+    def set_icon(self, icon):
+        self.window.set_icon(icon)
+
+    def set_camera(self, camera: Camera2D | None):
         self.camera = camera
+
+    def reset_camera(self):
+        self.camera = self.main_camera
 
     def window_to_virtual(self, pos):
         x, y = pos
@@ -198,7 +210,7 @@ class Renderer:
         )
 
     def draw_rect_window(self, rect, color):
-        self.renderer.draw_color = (*color, 255)
+        self.renderer.draw_color = color
         self.renderer.fill_rect(rect)
 
     def draw_rect(self, rect, color):
@@ -223,3 +235,27 @@ class Renderer:
         h *= scale
 
         self.draw_rect_window((x, y, w, h), color)
+
+    def draw_text(
+            self,
+            text_obj: Text,
+            asset_manager: AssetManager,
+            position: Vector2,
+            text_size_override: tuple[int, int] | None = None,
+    ):
+        # Check cache
+        font_cache = asset_manager.library["font_cache"]
+        font_id = (str(text_obj.font.path), text_obj.font.size)
+        if font_id not in font_cache:
+            font_cache[font_id] = pg.font.Font(text_obj.font.path, text_obj.font.size)
+        font: pg.font.Font = font_cache[font_id]
+        # Render font
+        rendered_surface = font.render(text_obj.content, False, text_obj.color)
+        # Use override if provided
+        if text_size_override is not None:
+            rendered_size = text_size_override
+        else:
+            rendered_size = rendered_surface.get_size()
+        # Draw it
+        font_texture = sdl2.Texture.from_surface(self.renderer, rendered_surface)
+        self.draw_texture(Texture2D(font_texture, rendered_size), position)

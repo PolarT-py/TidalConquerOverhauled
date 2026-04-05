@@ -2,7 +2,6 @@ import pygame as pg
 
 class InputManager:
     def __init__(self):
-
         self.keys_down = set()
         self.keys_pressed = set()
         self.keys_released = set()

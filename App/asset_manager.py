@@ -11,27 +11,30 @@ class AssetManager:
     def __init__(self, renderer, mixer):
         self.renderer = renderer
         self.mixer = mixer
-        self.library = {}
+        self.library = {
+            "textures": {},
+            "fonts": {},
+            "font_cache": {},
+        }
 
-    def get(self, key):
+    def get(self, family, key):
         try:
-            if self.library[key] is not None:
-                return self.library[key]
+            return self.library[family][key]
         except KeyError:
             debug_print("No such Key (Texture/Path). ", debug_mode)
         return None
 
-    def load_texture(self, path):
+    def load_texture(self, path: Path):
         # Load the texture
         loaded_texture = self.renderer.load_texture(path)
         # Get key name for library item
         relative = path.relative_to(ASSETS_ROOT / "Images")
         key = relative.with_suffix("").as_posix()
         # Add to the library
-        self.library[key] = loaded_texture
+        self.library["textures"][key] = loaded_texture
         debug_print(f'Loaded Texture: "{path}"', debug_mode)
 
-    def load_audio(self, path):
+    def load_audio(self, path: Path):
         # Get key name for library item
         relative = path.relative_to(ASSETS_ROOT / "Audio")
         key = relative.with_suffix("").as_posix()
@@ -42,16 +45,29 @@ class AssetManager:
             self.mixer.load_music_track(key, path)
         debug_print(f'Loaded Audio: "{key}"', debug_mode)
 
+    def load_font(self, path: Path):
+        # Load the texture
+        loaded_font = path  # Only store the path. Font size is dynamic, that's why
+        # The font key is just stem alone. No need for relative parent
+        key = path.stem
+        # Add to the library
+        self.library["fonts"][key] = loaded_font
+        debug_print(f'Loaded Font: "{path}"', debug_mode)
+
     def load_all(self):
         # Load all the textures and audio files in ROOT/Assets/
         images_root = ASSETS_ROOT / "Images"
         audio_root = ASSETS_ROOT / "Audio"
+        fonts_root = ASSETS_ROOT / "Fonts"
         # Search Image Files
         for file in images_root.rglob("*.png"):
             self.load_texture(file)
         # Search Audio Files
         for file in audio_root.rglob("*.ogg"):
             self.load_audio(file)
+        # Search Font Files
+        for file in fonts_root.rglob("*.ttf"):
+            self.load_font(file)
 
 if __name__ == "__main__":
     asset_manager = AssetManager(1, 1)  # Test with fake values (Deprecated)

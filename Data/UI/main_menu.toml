@@ -1,0 +1,90 @@
+name = "main_menu"
+
+[[elements]]
+id = "title_quote"
+type = "label"
+position = [640, 350]
+text = "TC: OVERHAULED Edition"
+text_size = 48
+text_font = "PirataOne"
+text_color = [255, 255, 255, 255]
+draw_background = true
+visible = true
+enabled = true
+
+[[elements]]
+id = "title_image"
+type = "texture"
+texture = "TEXT/title2"
+position = [640, 300]
+anchor = "center"
+visible = true
+enabled = true
+
+[[elements]]
+id = "settings_button"
+type = "button"
+rect = [20, 650, 150, 50]
+text = "Settings"
+text_size = 28
+text_font = "PirataOne"
+text_color = [255, 255, 255, 255]
+visible = true
+enabled = true
+
+[[elements]]
+id = "start_button"
+type = "texture_button"
+rect = [300, 550, 100, 50]
+texture = "buttons/startbutton"
+draw_background = false
+visible = true
+enabled = true
+
+[[elements]]
+id = "resume_button"
+type = "texture_button"
+rect = [450, 550, 100, 50]
+texture = "buttons/continuebutton"
+draw_background = false
+visible = true
+enabled = true
+
+[[elements]]
+id = "exit_button"
+type = "texture_button"
+rect = [700, 550, 100, 50]
+texture = "buttons/exitbutton"
+draw_background = false
+visible = true
+enabled = true
+
+[[elements]]
+id = "credits_button"
+type = "texture_button"
+rect = [1160, 20, 100, 50]
+texture = "buttons/creditsbutton"
+draw_background = false
+visible = true
+enabled = true
+
+[[elements]]
+id = "tutorial"
+type = "texture"
+texture = "misc/tutorial"
+position = [1000, 550]
+anchor = "center"
+visible = true
+enabled = true
+
+[[elements]]
+id = "polartblock"
+type = "label"
+position = [1096, 685]
+text = "Made by PolarTBlock"
+text_size = 24
+text_font = "PirataOne"
+text_color = [255, 255, 255, 255]
+draw_background = true
+visible = true
+enabled = true
