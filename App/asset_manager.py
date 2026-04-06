@@ -23,6 +23,8 @@ class AssetManager:
             return self.library[family][key]
         except KeyError:
             debug_print("No such Key (Texture/Path). ", debug_mode)
+            if family == "texture":
+                debug_print(f'Did you mean "textures"? (You wrote "texture")')  # Future-proof myself from be dum
         return None
 
     def load_texture(self, path: Path):

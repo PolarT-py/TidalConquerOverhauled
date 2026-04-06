@@ -10,7 +10,6 @@ from App.camera import DebugCameraController
 from App.input import InputManager
 from App.ui import SceneManager, UIScene
 from App.ui_loader import load_scenes
-from World.background import Background
 from App.in_game import InGame
 
 class Game:
@@ -55,13 +54,9 @@ class Game:
         self.debug_controller = DebugCameraController(self.input_manager)
         self.DEBUG_CAMERA_SPEED = 500  # Only for debugging. Used to move camera (Outside)
 
-        # Set Objects
-        self.background = Background(self.renderer, self.asset_manager)
-
         # Set Game Object
         self.ingame = InGame(
-            self.renderer, self.asset_manager, self.mixer, self.input_manager, self.background
-        )
+            self.renderer, self.asset_manager, self.mixer, self.input_manager)
 
         # Set Start Actions
         self.mixer.play_music("music/Thatched Villagers")
@@ -82,11 +77,13 @@ class Game:
             if e.id == "start_button":
                 self.scene_manager.set_scene("in_game", self.mixer)
                 self.renderer.camera.move(Vector2(0, -450))
+                self.ingame.new()
             elif e.id == "exit_button":
                 self.running = False
             elif e.id == "resume_button":
                 self.scene_manager.set_scene("in_game", self.mixer)
                 self.renderer.camera.move(Vector2(0, -450))
+                self.ingame.unpause()
             elif e.id == "credits_button":
                 self.scene_manager.set_scene("credits", self.mixer)
                 self.renderer.camera.move(Vector2(-1280, 0))
@@ -134,6 +131,7 @@ class Game:
             elif e.id == "back_button_in_game":
                 self.scene_manager.set_scene("main_menu", self.mixer)
                 self.renderer.camera.move(Vector2(0, 0))
+                self.ingame.pause()
         # Update Elements every frame
         for e in self.scene_manager.current_scene.elements:
             pass
@@ -143,6 +141,10 @@ class Game:
                 self.renderer.camera.move(Vector2(0, 0))
             elif e.id == "debug_test_button_2":  # Anchor Camera to Game Area (0, -450)
                 self.renderer.camera.move(Vector2(0, -450))
+            elif e.id == "debug_test_button_3":  # Pause Game
+                self.ingame.pause()
+            elif e.id == "debug_test_button_4":  # UnPause Game
+                self.ingame.unpause()
         # Update Debug Elements every frame
         for e in self.debug_menu.elements:
             if e.id == "debug_fps":
@@ -170,7 +172,7 @@ class Game:
         # Reset Camera to Main Camera
         self.renderer.reset_camera()
         # Draw InGame
-        self.ingame.draw()
+        self.ingame.draw(self.debug_mode)
         # Draw UI
         self.scene_manager.draw()
         # Draw Black Bars

@@ -28,12 +28,12 @@ enabled = true
 position_mode = "topright"
 use_camera = false
 
-# Test Button 3
+# Test Button 3 - Pause Game
 [[elements]]
 id = "debug_test_button_3"
 type = "button"
 rect = [1000, 125, 200, 50]
-text = "Test Button 3"
+text = "Pause Game"
 text_size = 24
 text_font = "PirataOne"
 text_color = [255, 255, 255, 255]
@@ -42,12 +42,12 @@ enabled = true
 position_mode = "topright"
 use_camera = false
 
-# Test Button 4
+# Test Button 4 - UnPause Game
 [[elements]]
 id = "debug_test_button_4"
 type = "button"
 rect = [780, 5, 200, 50]
-text = "Test Button 4"
+text = "Unpause Game"
 text_size = 24
 text_font = "PirataOne"
 text_color = [255, 255, 255, 255]
