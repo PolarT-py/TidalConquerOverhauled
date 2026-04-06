@@ -1,0 +1,77 @@
+name = "in_game"
+
+
+# In Game UI Elements
+[[elements]]
+id = "blue_money"
+type = "label"
+position = [50, 700]
+text = "6969"
+text_size = 32
+text_font = "PirataOne"
+text_color = [255, 255, 255, 255]
+draw_background = false
+visible = true
+enabled = true
+position_mode = "topleft"
+use_camera = true
+
+[[elements]]
+id = "red_money"
+type = "label"
+position = [1230, 700]
+text = "6969"
+text_size = 32
+text_font = "PirataOne"
+text_color = [255, 255, 255, 255]
+draw_background = false
+visible = true
+enabled = true
+position_mode = "topright"
+use_camera = true
+
+[[elements]]
+id = "blue_coin"
+type = "texture"
+texture = "misc/coin"
+position = [10, 704]
+anchor = "center"
+visible = true
+enabled = true
+position_mode = "topleft"
+use_camera = true
+
+[[elements]]
+id = "red_coin"
+type = "texture"
+texture = "misc/coin"
+position = [1270, 704]
+anchor = "center"
+visible = true
+enabled = true
+position_mode = "topright"
+use_camera = true
+
+
+# Others
+[[elements]]
+id = "tutorial"
+type = "texture"
+texture = "misc/tutorial"
+position = [1020, 465]
+anchor = "center"
+visible = true
+enabled = true
+use_camera = true
+
+# Back Button
+[[elements]]
+id = "back_button_in_game"
+type = "texture_button"
+rect = [640, 1135, 100, 50]
+texture = "buttons/backbutton"
+draw_background = false
+visible = true
+enabled = true
+position_mode = "center"
+use_camera = true

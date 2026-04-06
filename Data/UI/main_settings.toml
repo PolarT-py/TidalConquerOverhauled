@@ -16,11 +16,27 @@ position_mode = "center"
 use_camera = true
 
 
+# SubTitle:
+[[elements]]
+id = "settings_graphics_subtitle"
+type = "label"
+position = [-640, 255]
+text = "           ---- Graphics ----           "
+text_size = 28
+text_font = "PirataOne"
+text_color = [255, 255, 255, 255]
+draw_background = true
+visible = true
+enabled = true
+position_mode = "center"
+use_camera = true
+
+
 # Vsync Option
 [[elements]]
 id = "vsync_toggle_button"
 type = "button"
-rect = [-640, 250, 500, 50]
+rect = [-640, 320, 500, 50]
 text = "Vsync:                  ____"
 text_size = 38
 text_font = "PirataOne"
@@ -34,7 +50,7 @@ use_camera = true
 [[elements]]
 id = "vsync_text_warn"
 type = "label"
-position = [-200, 250]
+position = [-200, 320]
 text = "  *Please Restart the Game to Apply*  "
 text_size = 28
 text_font = "PirataOne"
@@ -50,7 +66,7 @@ use_camera = true
 [[elements]]
 id = "fps_change_button"
 type = "button"
-rect = [-640, 310, 500, 50]
+rect = [-640, 380, 500, 50]
 text = "FPS:                    ____"
 text_size = 38
 text_font = "PirataOne"
@@ -65,7 +81,7 @@ use_camera = true
 [[elements]]
 id = "fullscreen_toggle_button"
 type = "button"
-rect = [-640, 370, 500, 50]
+rect = [-640, 440, 500, 50]
 text = "Windowed Mode"
 text_size = 38
 text_font = "PirataOne"
@@ -80,7 +96,7 @@ use_camera = true
 [[elements]]
 id = "back_button_settings"
 type = "texture_button"
-rect = [1165, 620, 100, 50]
+rect = [1165, 630, 100, 50]
 texture = "buttons/backbutton"
 draw_background = false
 visible = true

@@ -81,11 +81,13 @@ class SceneManager:
         for scene in self.scenes.values():
             scene.call_ui_beginning_functions(settings)
 
-    def set_scene(self, scene_name: str):
+    def set_scene(self, scene_name: str, mixer=None):
         if scene_name not in self.scenes:
             raise ValueError(f"Scene '{scene_name}' does not exist.")
         self.current_scene_name = scene_name
         self.current_scene = self.scenes[scene_name]
+        if mixer is not None:
+            mixer.play_sound("effects/whoosh")
 
     def update(self, dt):
         return self.current_scene.update_all(dt)
@@ -111,7 +113,8 @@ class UIButton(UIElement):
                  text_size=24,
                  text_font=None,
                  position_mode="topleft",
-                 use_camera=False):
+                 use_camera=False,
+                 shadow=True,):
         super().__init__(renderer, asset_manager, mixer, input_manager)
         self.rect = pg.Rect(rect)
         self.hovered = False
@@ -120,6 +123,7 @@ class UIButton(UIElement):
         self.text = Text(text, self.font)
         self.use_camera = use_camera
         self.position_mode = position_mode
+        self.shadow = shadow
 
     def update(self, dt):  # Returns if pressed/not
         # Fetch Mouse Position
@@ -177,7 +181,7 @@ class UIButton(UIElement):
             color = (100, 100, 100, 100) if not (self.hovered and self.enabled) else (160, 160, 160, 100)
             self.renderer.draw_rect(draw_rect, color)
 
-            # Draw Text
+            # Cache Font
             if self.text.content:
                 font_cache = self.asset_manager.library["font_cache"]
                 font_id = (str(self.text.font.path), self.text.font.size)
@@ -190,6 +194,17 @@ class UIButton(UIElement):
                 center_x = draw_rect.x + (draw_rect.width - text_w) / 2
                 center_y = draw_rect.y + (draw_rect.height - text_h) / 2
 
+                # Draw Shadow
+                color = self.text.color
+                if self.shadow:
+                    self.text.color = (0, 0, 0, 155)
+                    self.renderer.draw_text(
+                        self.text,
+                        self.asset_manager,
+                        Vector2(center_x, center_y+2),
+                        text_size_override=(text_w, text_h)
+                    )
+                self.text.color = color
                 self.renderer.draw_text(
                     self.text,
                     self.asset_manager,
@@ -253,7 +268,8 @@ class UILabel(UIElement):
                  text_font=None,
                  draw_background=False,
                  position_mode="topleft",
-                 use_camera=False):
+                 use_camera=False,
+                 shadow=True):
         super().__init__(renderer, asset_manager, mixer, input_manager)
         self.position: Vector2 = Vector2(position)
         self.rect = pg.Rect(self.position.x, self.position.y, 0, 0)
@@ -262,6 +278,7 @@ class UILabel(UIElement):
         self.draw_background = draw_background
         self.position_mode = position_mode
         self.use_camera = use_camera
+        self.shadow = shadow
 
     def update_rect(self, text_w, text_h):
         x, y = self.position.x, self.position.y
@@ -302,11 +319,24 @@ class UILabel(UIElement):
                     color = (100, 100, 100, 100)
                     self.renderer.draw_rect(self.rect, color)
 
-                # Draw Text
+                # Apply Camera/ or Not
                 if self.use_camera:
                     self.renderer.camera = self.renderer.main_camera
                 else:
                     self.renderer.camera = None
+                # Draw Shadow
+                color = self.text.color
+                if self.shadow:
+                    self.text.color = (0, 0, 0, 155)
+                    self.renderer.draw_text(
+                        self.text,
+                        self.asset_manager,
+                        self.position - Vector2(0, -2),
+                        text_size_override=(text_w, text_h),
+                        position_mode=self.position_mode
+                    )
+                # Draw Text
+                self.text.color = color
                 self.renderer.draw_text(
                     self.text,
                     self.asset_manager,
@@ -324,12 +354,12 @@ class UITexture(UIElement):
                  asset_manager: AssetManager,
                  mixer: Mixer,
                  input_manager: InputManager,
-                 anchor="topleft",
+                 position_mode="topleft",
                  use_camera=False):
         super().__init__(renderer, asset_manager, mixer, input_manager)
         self.texture = texture
         self.position: Vector2 = position
-        self.anchor = anchor
+        self.position_mode = position_mode
         self.use_camera = use_camera
 
     def draw(self):
@@ -343,7 +373,7 @@ class UITexture(UIElement):
                 pos=self.position,
                 rotation=0.0,
                 scale=Vector2(1.0, 1.0),
-                position_mode=self.anchor,
+                position_mode=self.position_mode,
             )
 
 

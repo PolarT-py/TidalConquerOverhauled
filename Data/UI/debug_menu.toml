@@ -1,11 +1,81 @@
 name = "debug_menu"
 
-# Test Button 1
+# Test Button 1 - Anchor Camera to Main Menu (0, 0)
 [[elements]]
 id = "debug_test_button_1"
 type = "button"
-rect = [1275, 5, 125, 50]
-text = "Test Button 1"
+rect = [1000, 5, 200, 50]
+text = "Anchor Cam (0, 0)"
+text_size = 24
+text_font = "PirataOne"
+text_color = [255, 255, 255, 255]
+visible = true
+enabled = true
+position_mode = "topright"
+use_camera = false
+
+# Test Button 2 - Anchor Camera to Game Field (0, -450)
+[[elements]]
+id = "debug_test_button_2"
+type = "button"
+rect = [1000, 65, 200, 50]
+text = "Anchor Cam (0, -450)"
+text_size = 24
+text_font = "PirataOne"
+text_color = [255, 255, 255, 255]
+visible = true
+enabled = true
+position_mode = "topright"
+use_camera = false
+
+# Test Button 3
+[[elements]]
+id = "debug_test_button_3"
+type = "button"
+rect = [1000, 125, 200, 50]
+text = "Test Button 3"
+text_size = 24
+text_font = "PirataOne"
+text_color = [255, 255, 255, 255]
+visible = true
+enabled = true
+position_mode = "topright"
+use_camera = false
+
+# Test Button 4
+[[elements]]
+id = "debug_test_button_4"
+type = "button"
+rect = [780, 5, 200, 50]
+text = "Test Button 4"
+text_size = 24
+text_font = "PirataOne"
+text_color = [255, 255, 255, 255]
+visible = true
+enabled = true
+position_mode = "topright"
+use_camera = false
+
+# Test Button 5
+[[elements]]
+id = "debug_test_button_5"
+type = "button"
+rect = [780, 65, 200, 50]
+text = "Test Button 5"
+text_size = 24
+text_font = "PirataOne"
+text_color = [255, 255, 255, 255]
+visible = true
+enabled = true
+position_mode = "topright"
+use_camera = false
+
+# Test Button 6
+[[elements]]
+id = "debug_test_button_6"
+type = "button"
+rect = [780, 125, 200, 50]
+text = "Test Button 6"
 text_size = 24
 text_font = "PirataOne"
 text_color = [255, 255, 255, 255]

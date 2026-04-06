@@ -207,8 +207,11 @@ class Renderer:
         if position_mode == "center":
             x -= scaled_w / 2
             y -= scaled_h / 2
+        elif position_mode == "topright":
+            x -= scaled_w
         elif position_mode != "topleft":
-            raise ValueError(f'Invalid position_mode: {position_mode}\nAccepted modes: "topleft" "center"')
+            raise ValueError(
+                f'Invalid position_mode: {position_mode}\nAccepted modes: "topleft" "center" "topright"')
 
         # Convert from Virtual space to Window space.
         window_x = vx + x * letterbox_scale
@@ -278,8 +281,9 @@ class Renderer:
             font_cache[font_id] = pg.font.Font(text_obj.font.path, text_obj.font.size)
         font: pg.font.Font = font_cache[font_id]
         # Render font
-        rendered_surface = font.render(text_obj.content, False, text_obj.color)
-        # Use override if provided
+        r, g, b, a = text_obj.color
+        rendered_surface = font.render(text_obj.content, False, (r, g, b))
+        # Use override if provided                      # False for the pixel-y look
         if text_size_override is not None:
             rendered_size = text_size_override
         else:
@@ -296,4 +300,5 @@ class Renderer:
             raise ValueError(f'Invalid position_mode: {position_mode}')
         # Draw it
         font_texture = sdl2.Texture.from_surface(self.renderer, rendered_surface)
+        font_texture.alpha = a
         self.draw_texture(Texture2D(font_texture, rendered_size), Vector2(x, y))

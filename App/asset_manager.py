@@ -1,10 +1,11 @@
 from pathlib import Path
 from App.debug import debug_print
+import time
 
 debug_mode = False
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 ASSETS_ROOT = Path(PROJECT_ROOT).joinpath("Assets")
-debug_print(f'"Assets Root:", ASSETS_ROOT', debug_mode)
+debug_print(f'Assets Root: {ASSETS_ROOT}', debug_mode)
 
 
 class AssetManager:
@@ -32,7 +33,7 @@ class AssetManager:
         key = relative.with_suffix("").as_posix()
         # Add to the library
         self.library["textures"][key] = loaded_texture
-        debug_print(f'Loaded Texture: "{path}"', debug_mode)
+        debug_print(f'Loaded Asset Texture: "{path}" as "{key}"', debug_mode)
 
     def load_audio(self, path: Path):
         # Get key name for library item
@@ -43,7 +44,7 @@ class AssetManager:
             self.mixer.load_sound(key, path)
         elif path.parent.name == "music":
             self.mixer.load_music_track(key, path)
-        debug_print(f'Loaded Audio: "{key}"', debug_mode)
+        debug_print(f'Loaded Asset Audio: "{key}" as "{key}"', debug_mode)
 
     def load_font(self, path: Path):
         # Load the texture
@@ -52,9 +53,10 @@ class AssetManager:
         key = path.stem
         # Add to the library
         self.library["fonts"][key] = loaded_font
-        debug_print(f'Loaded Font: "{path}"', debug_mode)
+        debug_print(f'Loaded Asset Font: "{path}" as "{key}"', debug_mode)
 
     def load_all(self):
+        start_time = time.time()
         # Load all the textures and audio files in ROOT/Assets/
         images_root = ASSETS_ROOT / "Images"
         audio_root = ASSETS_ROOT / "Audio"
@@ -68,6 +70,7 @@ class AssetManager:
         # Search Font Files
         for file in fonts_root.rglob("*.ttf"):
             self.load_font(file)
+        debug_print(f"Took: {(time.time() - start_time) * 1000:.2f}ms to load all assets", debug_mode)
 
 if __name__ == "__main__":
     asset_manager = AssetManager(1, 1)  # Test with fake values (Deprecated)

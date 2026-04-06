@@ -21,6 +21,7 @@ position = [640, 300]
 anchor = "center"
 visible = true
 enabled = true
+position_mode = "center"
 use_camera = true
 
 [[elements]]
@@ -83,6 +84,7 @@ position = [1000, 550]
 anchor = "center"
 visible = true
 enabled = true
+position_mode = "center"
 use_camera = true
 
 [[elements]]

@@ -111,6 +111,7 @@ def load_scenes(
                     draw_background=e.get("draw_background", False),
                     position_mode=e.get("position_mode", "topleft"),
                     use_camera=e.get("use_camera", False),
+                    shadow=e.get("shadow", True),
                 )
                 built_element.text.color = _parse_color(e.get("text_color"))
                 built_element.visible = e.get("visible", True)
@@ -127,7 +128,7 @@ def load_scenes(
                     input_manager=input_manager,
                     texture=texture,
                     position=Vector2(e.get("position", (0, 0))),
-                    anchor=e.get("anchor", "topleft"),
+                    position_mode=e.get("position_mode", "topleft"),
                     use_camera=e.get("use_camera", False),
                 )
                 built_element.visible = e.get("visible", True)
