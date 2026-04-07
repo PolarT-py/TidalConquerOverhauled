@@ -7,6 +7,8 @@ from App.input import InputManager
 from World.background import Background
 from Entities.boats import Boat
 from Entities.explosion import Explosion
+from App.boat_loader import load_boats
+from App.ui import UIRadioButtonGroup, UIRadioButton
 
 
 # The actual Gameplay part of the Game
@@ -22,6 +24,8 @@ class InGame:
         self.mixer: Mixer = mixer
         self.input_manager: InputManager = input_manager
         self.background = Background(self.renderer, self.asset_manager)
+        # Load Boats
+        self.boat_registry: dict = load_boats()
         # Set States
         self.running: bool = False
         # Declare Teams
@@ -38,8 +42,56 @@ class InGame:
             2: 930,
             3: 990,
         }
+        self.BOAT_SELECTOR: dict = {
+            "blue_start_x": 100,
+            "red_start_x": 1180,
+            "button_space": 74,
+        }
+        # Init Boat Selector
+        self.boat_selector_blue = UIRadioButtonGroup("boat1", self.renderer)
+        self.boat_selector_red = UIRadioButtonGroup("boat1", self.renderer)
+        self.setup_boat_selection_ui()
         # New Game
         self.new(False)
+
+    def setup_boat_selection_ui(self):
+        i = 0
+        for boat_class in self.boat_registry.values():
+            i += 1
+            print(boat_class)
+            print("-", boat_class.name)
+            print("-", boat_class.cost)
+            print("-", boat_class.texture_id)
+            self.boat_selector_blue.add(boat_class.name,
+                                        UIRadioButton(
+                                            self.renderer,
+                                            self.asset_manager,
+                                            self.mixer,
+                                            self.input_manager,
+                                            (
+                                                self.BOAT_SELECTOR["blue_start_x"] + i * self.BOAT_SELECTOR["button_space"],
+                                                1130, 64, 64),
+                                            None,
+                                            position_mode="center",
+                                            use_camera=True,
+                                        )
+            )
+            self.boat_selector_blue[boat_class.name].id = boat_class.name
+            self.boat_selector_red.add(boat_class.name,
+                                        UIRadioButton(
+                                            self.renderer,
+                                            self.asset_manager,
+                                            self.mixer,
+                                            self.input_manager,
+                                            (
+                                                self.BOAT_SELECTOR["red_start_x"] - i * self.BOAT_SELECTOR["button_space"],
+                                                1130, 64, 64),
+                                            None,
+                                            position_mode="center",
+                                            use_camera=True,
+                                        )
+            )
+            self.boat_selector_red[boat_class.name].id = boat_class.name
 
     # Start a new game
     def new(self, start=True):
@@ -80,11 +132,26 @@ class InGame:
 
     def pause(self): self.running = False  # Pauses the game
 
+    def update_money(self, dt):  # Update Money
+        self.teams.blue.money += self.teams.blue.money_base_increase * self.teams.blue.money_multiplier * dt
+        self.teams.red.money += self.teams.red.money_base_increase * self.teams.red.money_multiplier * dt
+
     def update(self, dt):
         # Update Background (Sky, Sea, Islands, Lanes animation)
         self.background.update(dt)
         # Update Game Objects
         if self.running:
+            # Update Money
+            self.update_money(dt)
+            # Update Boat Selectors
+            for e_name in self.boat_selector_blue.update(dt):
+                e = self.boat_selector_blue[e_name]
+                if e.id == "Speed Boat":
+                    print(e.id)
+            for e_name in self.boat_selector_red.update(dt):
+                e = self.boat_selector_red[e_name]
+                if e.id == "Speed Boat":
+                    print(e.id)
             # Loop through all boats to update them
             for boat in self.teams.red.boats + self.teams.blue.boats:
                 boat.update(dt, self.teams, self.TEAM_BOAT_EDGE_X)
@@ -112,13 +179,16 @@ class InGame:
         # Draw Explosions
         for explosion in self.explosions:
             explosion.draw(self.renderer, debug_mode)
+        # Draw Boat Selector UI
+        self.boat_selector_blue.draw_all()
+        self.boat_selector_red.draw_all()
 
 
 @dataclass
 class Team:
     name: str
-    money: int = 100
-    money_base_increase: int = 20
+    money: int = 80
+    money_base_increase: int = 10  # $/ps
     money_multiplier: float = 1.0
     boats: list[Boat] = field(default_factory=list)
     island_health: int = 100

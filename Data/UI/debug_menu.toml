@@ -101,6 +101,22 @@ position_mode = "topleft"
 use_camera = false
 
 
+# How to move camera
+[[elements]]
+id = "how_to_move_camera"
+type = "label"
+position = [5, 36]
+text = ' Use "i j k l" to move Camera '
+text_size = 24
+text_font = "PirataOne"
+text_color = [255, 255, 255, 255]
+draw_background = true
+visible = true
+enabled = true
+position_mode = "topleft"
+use_camera = false
+
+
 # Other Stuff
 [[elements]]
 id = "polartblock"

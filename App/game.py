@@ -2,6 +2,7 @@ from __future__ import annotations
 import pygame as pg
 from pygame import Vector2
 from pathlib import Path
+from math import floor
 from App.settings import load_settings, save_settings
 from App.renderer import Renderer
 from App.asset_manager import AssetManager
@@ -134,7 +135,10 @@ class Game:
                 self.ingame.pause()
         # Update Elements every frame
         for e in self.scene_manager.current_scene.elements:
-            pass
+            if e.id == "blue_money":
+                e.text.content = str(floor(self.ingame.teams.blue.money))
+            elif e.id == "red_money":
+                e.text.content = str(floor(self.ingame.teams.red.money))
         # Update Debug Elements Interaction
         for e in self.debug_menu.update_all(dt):
             if e.id == "debug_test_button_1":  # Anchor Camera to Main Menu (0, 0)

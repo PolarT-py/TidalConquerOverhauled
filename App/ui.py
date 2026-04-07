@@ -138,9 +138,9 @@ class UIButton(UIElement):
 
         # Check if mouse is hovering
         new_rect = self.get_draw_rect()
-        if self.use_camera:
-            new_rect.x += self.renderer.camera.offset.x
-            new_rect.y += self.renderer.camera.offset.y
+        if self.use_camera:  # Use Main camera
+            new_rect.x += self.renderer.main_camera.offset.x
+            new_rect.y += self.renderer.main_camera.offset.y
         self.hovered = new_rect.collidepoint(mx, my)
         if self.hovered and self.input_manager.was_mouse_pressed(1):
             self.pressed_inside = True
@@ -375,6 +375,93 @@ class UITexture(UIElement):
                 scale=Vector2(1.0, 1.0),
                 position_mode=self.position_mode,
             )
+
+
+class UIRadioButtonGroup:
+    def __init__(self, selected: str | None, renderer: Renderer):
+        self.elements: dict[str, UIRadioButton] = {}
+        self.selected_key: str | None = selected
+        self.renderer = renderer
+
+    def __getitem__(self, key):
+        return self.elements[key]
+
+    def __iter__(self):
+        return iter(self.elements.values())
+
+    def __len__(self):
+        return len(self.elements)
+
+    def add(self, key, value):
+        self.elements[key] = value
+        if self.selected_key == key:
+            self.select(key)
+        elif self.selected_key is None:
+            self.select(key)
+
+    def select(self, key: str):
+        self.selected_key = key
+        for k, btn in self.elements.items():
+            btn.selected = (k == key)
+
+    def update(self, dt) -> list:
+        selected = []
+        for key, radio_button in self.elements.items():
+            if radio_button.update(dt):
+                self.select(key)
+                selected.append(key)
+        return selected
+
+    def draw_all(self):
+        for radio_button in self:
+            radio_button.draw()
+
+
+class UIRadioButton(UITextureButton):
+    def __init__(self,
+                 renderer: Renderer,
+                 asset_manager: AssetManager,
+                 mixer: Mixer,
+                 input_manager: InputManager,
+                 rect: tuple[int, int, int, int],  # (64, 64, 64, 64)
+                 texture,
+                 draw_background=False,
+                 position_mode="topleft",
+                 use_camera=False):
+        super().__init__(renderer, asset_manager, mixer, input_manager, rect, texture,
+                         draw_background, position_mode, use_camera)
+        self.texture_on: Texture2D = self.asset_manager.get("textures", "buttons/selected_button")
+        self.texture_off: Texture2D = self.asset_manager.get("textures", "buttons/button")
+        self.texture = self.texture_off
+        self.selected = False
+
+    def draw(self):
+        if self.visible:
+            # Calculate Center Of Button
+            draw_rect = self.get_draw_rect()
+            x, y, w, h = draw_rect
+
+            if self.use_camera:
+                self.renderer.camera = self.renderer.main_camera
+            else:
+                self.renderer.camera = None
+            center_pos = Vector2(x + w / 2, y + h / 2)
+
+            # Update Texture
+            self.texture = self.texture_on if self.selected else self.texture_off
+
+            # Draw Texture in the Center
+            self.renderer.draw_texture(
+                self.texture,
+                pos=center_pos,
+                rotation=0.0,
+                scale=Vector2(1.28, 1.28),
+                position_mode="center",
+            )
+            # If: want to draw Rect Foreground (Debug/Hitbox Check)
+            if self.draw_background:
+                color = (100, 100, 100, 100) if not (self.hovered and self.enabled) else (160, 160, 160, 100)
+                self.renderer.draw_rect(draw_rect, color)
 
 
 class Font:

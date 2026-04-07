@@ -4,14 +4,18 @@ from App.renderer import Sprite2D
 
 
 class Boat:
+    # External Data
+    name = "Generic Boat"  # Name
+    cost = 20  # Cost to buy the boat
+    texture_id = "boats/boat1_"  # ID for getting the texture for boat. After the _ is team name.
     def __init__(self, team_name: str, position: Vector2, lane: int, asset_manager: AssetManager):
-        self.name = "Generic Boat"
+        # Main Data
         self.position: Vector2 = position  # Position (Centered)
         self.rect: Rect = Rect((*position, 100, 35))  # X Y Position, Width, Height
         self.rect_offset: Vector2 = Vector2(0, 25)  # Offset for rect (Applied in self.fix_other_positions)
         self.lane: int = lane  # Which lane (1/2/3) it's on
         self.sprite: Sprite2D = Sprite2D(  # Boat Sprite
-            texture=asset_manager.get("textures", f"boats/boat1_{team_name.upper()}"),  # Get Texture
+            texture=asset_manager.get("textures", f"{self.texture_id}{team_name.upper()}"),  # Get Texture
             position=self.position,  # Sprite should always follow self.position
             position_mode="center",)  # Position Mode. Keep centered.
         self.team_name: str = team_name  # Boat's Team
@@ -70,7 +74,7 @@ class Boat:
                 # If it reaches the Island, deal damage then die
                 teams.red.island_health -= self.damage
                 self.kill()
-                # Check if the Island has <= 0 health. If so, set win so the Game Manager can clean up
+                # Check if the Island has <= 0 health. If so, set off a Win so the Game Manager can clean up
                 if teams.blue.island_health <= 0:
                     self.win()
             if self.team_name == "red" and self.position.x <= team_edges["blue"]:

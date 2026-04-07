@@ -13,7 +13,7 @@ env/
 .idea/
 *.iml
 
-# VS Code (optional)
+# VS Code
 .vscode/
 
 # OS files
@@ -28,8 +28,7 @@ build/
 # Logs
 *.log
 
-# Your project design doc (optional)
-PROJECT.md
+# Design Doc
 project.md
 
 # Temporary / misc
