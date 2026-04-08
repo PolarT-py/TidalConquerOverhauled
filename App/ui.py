@@ -125,13 +125,23 @@ class UIButton(UIElement):
         self.position_mode = position_mode
         self.shadow = shadow
 
-    def update(self, dt):  # Returns if pressed/not
+    def update_others(self, dt):  # For other classes
+        pass
+
+    def update(self, dt, custom_cursor=None, camera=None):  # Returns if pressed/not
         # Fetch Mouse Position
         mouse_position = self.input_manager.mouse_pos_virtual
         if mouse_position is None:
             self.hovered = False
             return False  # Mouse position Out of Virtual Space
         mx, my = mouse_position
+        # Fetch custom Cursor Position
+        if custom_cursor is not None: cx, cy = custom_cursor.position + camera.offset
+        else: cx, cy = Vector2(-10000000000, -10000000000)
+        # Set custom cursor click
+        mouse_clicked = self.input_manager.was_mouse_pressed(1)
+        custom_cursor_clicked = False if custom_cursor is None\
+            else (custom_cursor.has_normal_click() if custom_cursor.status == "normal" else False)
 
         # Check if it's enabled
         if not self.enabled: return False
@@ -141,17 +151,20 @@ class UIButton(UIElement):
         if self.use_camera:  # Use Main camera
             new_rect.x += self.renderer.main_camera.offset.x
             new_rect.y += self.renderer.main_camera.offset.y
-        self.hovered = new_rect.collidepoint(mx, my)
-        if self.hovered and self.input_manager.was_mouse_pressed(1):
+        self.hovered = new_rect.collidepoint(mx, my)  # Get hover from mouse
+        if not self.hovered: self.hovered = new_rect.collidepoint(cx, cy)  # If None, get from custom cursor
+        if self.hovered and (mouse_clicked or custom_cursor_clicked):
             self.pressed_inside = True
 
         # Check if mouse is clicked
-        if self.input_manager.was_mouse_pressed(1):
+        if mouse_clicked or custom_cursor_clicked:
             if self.hovered and self.pressed_inside:
                 self.pressed_inside = False
                 self.mixer.play_sound("effects/click1")
+                self.update_others(dt)
                 return True
             self.pressed_inside = False
+        self.update_others(dt)
         return False
 
     def get_draw_rect(self):
@@ -393,31 +406,33 @@ class UIRadioButtonGroup:
         return len(self.elements)
 
     def add(self, key, value):
+        # Sets key to value
         self.elements[key] = value
-        if self.selected_key == key:
+        # Selects the key
+        if self.selected_key == key:  # If self.selected_key matches key, set it (Used for init)
             self.select(key)
-        elif self.selected_key is None:
+        elif self.selected_key is None:  # If there's no selected key already, set it as selected
             self.select(key)
 
     def select(self, key: str):
+        # Sets key to selected
         self.selected_key = key
-        for k, btn in self.elements.items():
+        for k, btn in self.elements.items():  # Loop and Set matching key to be selected
             btn.selected = (k == key)
 
-    def update(self, dt) -> list:
-        selected = []
+    def update(self, dt, custom_cursor=None, camera=None) -> UIRadioButton | None:
         for key, radio_button in self.elements.items():
-            if radio_button.update(dt):
+            if radio_button.update(dt, custom_cursor, camera):
                 self.select(key)
-                selected.append(key)
-        return selected
+                return radio_button  # Return activated button
+        return None
 
     def draw_all(self):
         for radio_button in self:
             radio_button.draw()
 
 
-class UIRadioButton(UITextureButton):
+class UIRadioButton(UITextureButton):  # Radio button, but specifically for boat selector (For ease of use)
     def __init__(self,
                  renderer: Renderer,
                  asset_manager: AssetManager,
@@ -425,6 +440,8 @@ class UIRadioButton(UITextureButton):
                  input_manager: InputManager,
                  rect: tuple[int, int, int, int],  # (64, 64, 64, 64)
                  texture,
+                 icon,
+                 label,
                  draw_background=False,
                  position_mode="topleft",
                  use_camera=False):
@@ -432,8 +449,18 @@ class UIRadioButton(UITextureButton):
                          draw_background, position_mode, use_camera)
         self.texture_on: Texture2D = self.asset_manager.get("textures", "buttons/selected_button")
         self.texture_off: Texture2D = self.asset_manager.get("textures", "buttons/button")
-        self.texture = self.texture_off
+        self.texture: Texture2D = self.texture_off
+        self.icon: Texture2D = asset_manager.get("textures", icon)
+        self.label: UILabel = label
+        self.label.position_mode = "center"
+        self.label.position = Vector2(self.rect.x, self.rect.y - 38)
+        self.label.font = Font(asset_manager.get("fonts", "PirataOne"), 28)
+        self.label.text.font = self.label.font
+        self.label.use_camera = True
         self.selected = False
+
+    def update_others(self, dt):
+        self.label.update(dt)
 
     def draw(self):
         if self.visible:
@@ -450,14 +477,24 @@ class UIRadioButton(UITextureButton):
             # Update Texture
             self.texture = self.texture_on if self.selected else self.texture_off
 
-            # Draw Texture in the Center
+            # Draw Button Texture in the Center
             self.renderer.draw_texture(
                 self.texture,
                 pos=center_pos,
                 rotation=0.0,
-                scale=Vector2(1.28, 1.28),
+                scale=Vector2(1.4, 1.4) if self.selected else Vector2(1.28, 1.28),  # Bigger if selected
                 position_mode="center",
             )
+            # Draw Icon Texture in the Center
+            self.renderer.draw_texture(
+                self.icon,
+                pos=center_pos,
+                rotation=0.0,
+                scale=Vector2(0.52, 0.52) if self.selected else Vector2(0.5, 0.5),  # Bigger if selected
+                position_mode="center",
+            )
+            # Draw money label
+            self.label.draw()
             # If: want to draw Rect Foreground (Debug/Hitbox Check)
             if self.draw_background:
                 color = (100, 100, 100, 100) if not (self.hovered and self.enabled) else (160, 160, 160, 100)

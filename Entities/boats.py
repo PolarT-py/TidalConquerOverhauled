@@ -6,7 +6,8 @@ from App.renderer import Sprite2D
 class Boat:
     # External Data
     name = "Generic Boat"  # Name
-    cost = 20  # Cost to buy the boat
+    id = "GenericBoat"  # ID
+    cost = 10  # Cost to buy the boat
     texture_id = "boats/boat1_"  # ID for getting the texture for boat. After the _ is team name.
     def __init__(self, team_name: str, position: Vector2, lane: int, asset_manager: AssetManager):
         # Main Data
@@ -21,17 +22,20 @@ class Boat:
         self.team_name: str = team_name  # Boat's Team
         self.opponent_team_name: str = self.get_opponent_team_name()
         self.health: int = 100  # Boat's Health
-        self.speed: int = 75  # Boat's Speed in px/s calculated by (speed*dt). Can be -/+ Depending on Team
+        self.speed: int = 100  # Boat's Speed in px/s calculated by (speed*dt). Can be -/+ Depending on Team
         self.damage: int = 25  # Boat's Damage (When collision, damage is exchanged twice. Technically 25==50DMG)
         self.dead: bool = False  # If the boat is dead or not
         self.won: bool = False  # If the boat has captured the opponent's island (island_health<=0)
-        # Modify Speed depending on Blue(+)/Red(-) Team
-        if self.team_name == "red": self.speed *= -1
+        self.fix_direction()  # Fix the Boat's direction immediately
         # Fix rect position to center immediately
         self.fix_other_positions()
 
     def get_opponent_team_name(self) -> str:  # Get opponent's team name
         return "red" if self.team_name == "blue" else "blue"
+
+    def fix_direction(self):
+        # Modify Speed depending on Blue(+)/Red(-) Team
+        if self.team_name == "red": self.speed *= -1
 
     def fix_other_positions(self):
         self.rect.center = self.position  # Center Rect position to self.position
@@ -75,9 +79,9 @@ class Boat:
                 teams.red.island_health -= self.damage
                 self.kill()
                 # Check if the Island has <= 0 health. If so, set off a Win so the Game Manager can clean up
-                if teams.blue.island_health <= 0:
+                if teams.red.island_health <= 0:
                     self.win()
-            if self.team_name == "red" and self.position.x <= team_edges["blue"]:
+            elif self.team_name == "red" and self.position.x <= team_edges["blue"]:
                 # If it reaches the Island, deal damage then die
                 teams.blue.island_health -= self.damage
                 self.kill()

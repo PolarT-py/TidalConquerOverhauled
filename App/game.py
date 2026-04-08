@@ -7,7 +7,7 @@ from App.settings import load_settings, save_settings
 from App.renderer import Renderer
 from App.asset_manager import AssetManager
 from App.mixer import Mixer
-from App.camera import DebugCameraController
+from App.controllers import DebugCameraController
 from App.input import InputManager
 from App.ui import SceneManager, UIScene
 from App.ui_loader import load_scenes
