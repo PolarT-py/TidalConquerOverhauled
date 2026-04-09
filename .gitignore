@@ -16,6 +16,9 @@ env/
 # VS Code
 .vscode/
 
+# buildozer
+.buildozer
+
 # OS files
 .DS_Store
 Thumbs.db

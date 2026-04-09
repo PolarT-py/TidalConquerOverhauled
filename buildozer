@@ -1,0 +1,14 @@
+[app]
+title = Tidal Conquer: Overhauled
+package.name = tidalconqueroverhauled
+package.domain = dev.polartblock
+
+source.dir = .
+source.include_exts = py,png,ogg,ttf,txt,json,toml
+
+requirements = python3,pygame
+
+orientation = landscape
+fullscreen = 1
+
+version = 0.8.0.3

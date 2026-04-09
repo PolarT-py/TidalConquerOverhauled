@@ -102,14 +102,14 @@ def save_settings(settings: Settings) -> None:
     lines.append("[main]")
     lines.append(f"window_size = {data['main']['window_size']}")
     lines.append(f'window_title = "{data["main"]["window_title"]}"')
-    lines.append(f'window_bg_color = {data["main"]["window_bg_color"]}')
-    lines.append(f'render_size = [1280, 720] # DO NOT CHANGE')
+    lines.append(f"window_bg_color = {data['main']['window_bg_color']}")
+    lines.append(f"render_size = [1280, 720] # DO NOT CHANGE")
     lines.append(f"fps = {data['main']['fps']}")
     lines.append(f"vsync = {data['main']['vsync']}")
     lines.append(f"fullscreen = {data['main']['fullscreen']}")
     lines.append(f"debug = {data['main']['debug']}")
     lines.append(f"first_time = {data['main']['first_time']}")
-    lines.append(f'platform = "{data['main']['platform']}"')
+    lines.append(f'platform = "{data["main"]["platform"]}"')
     lines.append("")
 
     # Add [audio]
