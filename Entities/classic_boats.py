@@ -92,5 +92,5 @@ class CannonBoat(Boat):
             return CannonBall(self.position + self.shoot_position_offset,
                                                160 if self.speed > 0 else -160, -140,
                                                self.position.y + 40,
-                                               self.team_name, asset_manager)
+                                               self.team_name, self.lane, asset_manager)
         return None

@@ -5,7 +5,7 @@ from App.clock import Timer
 
 
 class CannonBall:
-    def __init__(self, position: Vector2, x_velocity: float, y_velocity: float, stop_y: float, team: str,
+    def __init__(self, position: Vector2, x_velocity: float, y_velocity: float, stop_y: float, team: str, lane: int,
                  asset_manager: AssetManager):
         self.position: Vector2 = Vector2(position)  # Set Position
         self.x_velocity: float = x_velocity  # Horizontal movement speed
@@ -22,6 +22,7 @@ class CannonBall:
         self.despawn = False  # To activate the Despawn Timer
         self.dead = False  # To wait for cleanup
         self.damage = 150  # Damage it does when hit
+        self.lane = lane  # Which lane its on
 
     def fix_rect(self):
         self.rect.center = self.position

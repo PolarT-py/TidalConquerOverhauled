@@ -347,7 +347,8 @@ class InGame:
             for boat in self.teams.red.boats + self.teams.blue.boats:
                 for cannonball in self.cannonballs:  # See cannonball collision
                     if cannonball.rect.colliderect(boat.rect) and not cannonball.despawn:  # Cannonball hit
-                        if cannonball.team != boat.team_name:  # Prevent friendly fire
+                        if cannonball.team != boat.team_name and\
+                            cannonball.lane == boat.lane:  # Prevent friendly fire and only hit in same lane
                             self.explosions.append(Explosion(boat.position, self.asset_manager))
                             self.mixer.play_sound("effects/break")
                             boat.health -= cannonball.damage
@@ -404,15 +405,11 @@ class InGame:
                 self.lanes.three.color
             )
 
-        # Draw Cannonballs
-        for cannonball in self.cannonballs:
-            cannonball.draw(self.renderer, self.debug_mode)
-
-        # Draw Boats
+        # Draw Boats and Cannonballs
         for lane in (1, 2, 3):
-            for boat in self.teams.red.boats + self.teams.blue.boats:
-                if boat.lane == lane:
-                    boat.draw(self.renderer, debug_mode)
+            for obj in self.teams.red.boats + self.teams.blue.boats + self.cannonballs:
+                if obj.lane == lane:
+                    obj.draw(self.renderer, debug_mode)
 
         # Draw Explosions
         for explosion in self.explosions:
