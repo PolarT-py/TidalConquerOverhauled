@@ -269,7 +269,7 @@ class InGame:
             blue_cursor_triggered = blue_cursor.status == "normal" and blue_cursor.has_hold()
             blue_mouse_triggered = (
                     mouse_pos is not None
-                    and self.input_manager.was_mouse_pressed(1)
+                    and self.input_manager.is_mouse_down(1)
                     and mouse_pos.x < 640 and blue_cursor.status == "normal"
             )
             # Check mouse and playerCursor triggers
@@ -301,7 +301,7 @@ class InGame:
             red_cursor_triggered = red_cursor.status == "normal" and red_cursor.has_hold()
             red_mouse_triggered = (
                     mouse_pos is not None
-                    and self.input_manager.was_mouse_pressed(1)
+                    and self.input_manager.is_mouse_down(1)
                     and mouse_pos.x >= 640 and red_cursor.status == "normal"
             )
             # Check mouse and playerCursor triggers
