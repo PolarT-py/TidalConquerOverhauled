@@ -23,7 +23,8 @@ class SpeedBoat(Boat):
             texture=asset_manager.get("textures", f"{self.texture_id}{team_name.upper()}"),  # Get Texture
             position=self.position,  # Sprite should always follow self.position
             position_mode="center",)  # Position Mode. Keep centered.
-        self.health: int = 100  # Boat's Health
+        self.health_max: int = 100  # Boat's Max Health
+        self.health: int = self.health_max  # Boat's Health
         self.speed: int = 70  # Boat's Speed in px/s calculated by (speed*dt). Can be -/+ Depending on Team
         self.damage: int = 25  # Boat's Damage (When collision, damage is exchanged twice. Technically 25==50DMG)
         self.fix_direction()  # Fix the Boat's direction immediately
@@ -47,7 +48,8 @@ class TankBoat(Boat):
             texture=asset_manager.get("textures", f"{self.texture_id}{team_name.upper()}"),  # Get Texture
             position=self.position,  # Sprite should always follow self.position
             position_mode="center",)  # Position Mode. Keep centered.
-        self.health: int = 300  # Boat's Health
+        self.health_max: int = 300  # Boat's Max Health
+        self.health: int = self.health_max  # Boat's Health
         self.speed: int = 40  # Boat's Speed in px/s calculated by (speed*dt). Can be -/+ Depending on Team
         self.damage: int = 25  # Boat's Damage (When collision, damage is exchanged twice. Technically 25==50DMG)
         self.fix_direction()  # Fix the Boat's direction immediately
@@ -72,7 +74,8 @@ class CannonBoat(Boat):
             texture=asset_manager.get("textures", f"{self.texture_id}{team_name.upper()}"),  # Get Texture
             position=self.position,  # Sprite should always follow self.position
             position_mode="center",)  # Position Mode. Keep centered.
-        self.health: int = 200  # Boat's Health
+        self.health_max: int = 200  # Boat's Max Health
+        self.health: int = self.health_max  # Boat's Health
         self.speed: int = 30  # Boat's Speed in px/s calculated by (speed*dt). Can be -/+ Depending on Team
         self.damage: int = 50  # Boat's Damage (When collision, damage is exchanged twice. Technically 25==50DMG)
         self.fix_direction()  # Fix the Boat's direction immediately
