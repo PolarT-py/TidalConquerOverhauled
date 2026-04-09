@@ -78,6 +78,7 @@ class CannonBoat(Boat):
         self.fix_direction()  # Fix the Boat's direction immediately
         # Some fun exclusive stuff
         self.shoot_timer: Timer = Timer(2.5, start=True, repeat=True)  # Shoot every 2.5 seconds
+        self.shoot_timer.time_left = 1.0  # Instantly shoot when spawn
         self.shoot_position_offset: Vector2 = Vector2(35 if self.team_name == "blue" else -35,
                                                       -35)  # Offset to a more preferred position
 

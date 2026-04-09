@@ -1,3 +1,4 @@
+from random import randint
 from pygame import Vector2, Rect
 from App.asset_manager import AssetManager
 from App.renderer import Renderer, Texture2D
@@ -9,6 +10,7 @@ class CannonBall:
                  asset_manager: AssetManager):
         self.position: Vector2 = Vector2(position)  # Set Position
         self.x_velocity: float = x_velocity  # Horizontal movement speed
+        self.x_velocity = randint(int(self.x_velocity-15), int(self.x_velocity+15))  # Randomize x velocity a bit
         self.y_velocity: float = y_velocity  # Vertical movement speed
         self.team = team  # Which team it's from
         self.gravity_accel: float = 200.0  # Downward acceleration in px/s^2
