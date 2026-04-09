@@ -16,6 +16,7 @@ class AssetManager:
             "textures": {},
             "fonts": {},
             "font_cache": {},
+            "text_cache": {},
         }
 
     def get(self, family, key):

@@ -205,7 +205,7 @@ class UIButton(UIElement):
             color = (100, 100, 100, 100) if not (self.hovered and self.enabled) else (160, 160, 160, 100)
             self.renderer.draw_rect(draw_rect, color)
 
-            # Cache Font
+            # Cache Font and Draw Text
             if self.text.content:
                 font_cache = self.asset_manager.library["font_cache"]
                 font_id = (str(self.text.font.path), self.text.font.size)
@@ -235,6 +235,9 @@ class UIButton(UIElement):
                     Vector2(center_x, center_y),
                     text_size_override=(text_w, text_h)
                 )
+            # If disabled, draw extra layer of rect for darkness
+            if not self.enabled:
+                self.renderer.draw_rect(draw_rect, (0, 0, 0, 100))
 
 
 class UITextureButton(UIButton):

@@ -3,6 +3,10 @@ import pygame as pg
 from pygame import Vector2
 from pathlib import Path
 from math import floor
+from psutil import Process
+from os import getpid
+
+from App.debug import debug_print
 from App.settings import load_settings, save_settings
 from App.renderer import Renderer
 from App.asset_manager import AssetManager
@@ -12,16 +16,43 @@ from App.input import InputManager
 from App.ui import SceneManager, UIScene
 from App.ui_loader import load_scenes
 from App.in_game import InGame
+from os import environ
+from sys import platform
 
 class Game:
     def __init__(self):
         # Load Settings
         self.settings = load_settings()
-
-        # Initialize pygame and Essentials
-        pg.init()
         self.debug_mode = False
 
+        # Detect Platform
+        detected_platform = platform
+        debug_print(detected_platform, self.debug_mode)
+
+        # Set general platform
+        if platform in ("android", "ios"):  # Mobile Platforms
+            self.settings.main.platform = "Mobile"
+        else:  # Desktop Platforms
+            self.settings.main.platform = "Desktop"
+
+        # Get Game Process on Desktop
+        if self.settings.main.platform == "Desktop":
+            self.process = Process(getpid())
+        else:
+            self.process = None  # Unavailable for mobile
+
+        # Detect if first time playing
+        if self.settings.main.first_time:
+            debug_print("First Time:", self.settings.main.first_time)
+            self.settings.main.first_time = False
+
+        # Set Window Class (For Linux)
+        environ["SDL_VIDEO_X11_WMCLASS"] = "tidal-conquer-overhauled"
+
+        # Initialize pygame
+        pg.init()
+
+        # Initialize Renderer, Mixer, Asset Manager, Input Manager, Scene Manager, and Debug Menu
         self.renderer = Renderer(
             window_size=self.settings.main.window_size,
             render_size=self.settings.main.render_size,
@@ -57,11 +88,16 @@ class Game:
 
         # Set Game Object
         self.ingame = InGame(
-            self.renderer, self.asset_manager, self.mixer, self.input_manager)
+            self.renderer, self.asset_manager, self.mixer, self.input_manager, self.settings)
+
+        # Change certain settings and stuff depending on Platform
+        for scene in self.scene_manager.scenes.values():
+            for e in scene.elements:
+                if e.id == "fullscreen_toggle_button" and self.settings.main.platform == "Mobile":
+                    e.enabled = False
 
         # Set Start Actions
         self.mixer.play_music("music/Thatched Villagers")
-        print("First Time:", self.settings.main.first_time)
 
     def handle_events(self):
         for event in pg.event.get():
@@ -173,6 +209,13 @@ class Game:
         for e in self.debug_menu.elements:
             if e.id == "debug_fps":
                 e.text.content = f" FPS: {round(self.clock.get_fps(), 1)} "
+            if e.id == "debug_memory":
+                if self.settings.main.platform == "Desktop":
+                    memory_bytes = self.process.memory_info().rss
+                    memory_mb = memory_bytes / (1024 ** 2)
+                    e.text.content = f" RAM Usage: {round(memory_mb, 2)} "
+                else:
+                    e.text.content = f" RAM Usage: Unavailable on Mobile "
         # Check if toggle Debug Mode
         if self.input_manager.was_key_pressed(pg.K_F3):
             self.debug_mode = not self.debug_mode
@@ -191,8 +234,7 @@ class Game:
         self.handle_ui_interactions(dt)
 
     def draw(self):
-        # Draw the Window Background Color (Clear Screen)
-        # (Unnecessary though, Screen is already refreshed by Sea BG Fill+Bars, which covers screen)
+        # Draw the Window Background Color (Clear Screen) and update memory usage tracker for renderer
         self.renderer.clear(self.settings.main.window_bg_color)
         # Reset Camera to Main Camera
         self.renderer.reset_camera()

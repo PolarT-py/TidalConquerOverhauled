@@ -4,6 +4,7 @@ from App.renderer import Renderer, Texture2D
 from App.asset_manager import AssetManager
 from App.mixer import Mixer
 from App.input import InputManager
+from App.settings import Settings
 from World.background import Background
 from Entities.boats import Boat
 from Entities.classic_boats import CannonBoat
@@ -22,7 +23,8 @@ class InGame:
                  renderer: Renderer,
                  asset_manager: AssetManager,
                  mixer: Mixer,
-                 input_manager: InputManager):
+                 input_manager: InputManager,
+                 settings: Settings):
         # Cool Variables
         self.uptime = 0
         # Set Managers
@@ -30,6 +32,7 @@ class InGame:
         self.asset_manager: AssetManager = asset_manager
         self.mixer: Mixer = mixer
         self.input_manager: InputManager = input_manager
+        self.settings: Settings = settings
         self.background = Background(self.renderer, self.asset_manager)
         # Load Boats
         self.boat_registry: dict = load_boats()
@@ -202,8 +205,14 @@ class InGame:
     def pause(self): self.running = False  # Pauses the game
 
     def update_money(self, dt):  # Update Money
+        # Increase the money
         self.teams.blue.money += self.teams.blue.money_base_increase * dt
         self.teams.red.money += self.teams.red.money_base_increase * dt
+        # Cap the money if too much
+        if self.teams.blue.money > self.teams.blue.money_cap:
+            self.teams.blue.money = self.teams.blue.money_cap
+        if self.teams.red.money > self.teams.red.money_cap:
+            self.teams.red.money = self.teams.red.money_cap
 
     def update(self, dt):
         # Update Background (Sky, Sea, Islands, Lanes animation)
@@ -263,7 +272,11 @@ class InGame:
             # Update Lanes placement Checks
 
             # Get mouse pos
-            mouse_pos = self.input_manager.mouse_pos_virtual - self.renderer.main_camera.offset
+            virtual_mouse_pos = self.input_manager.mouse_pos_virtual
+            if virtual_mouse_pos is not None:
+                mouse_pos = virtual_mouse_pos - self.renderer.main_camera.offset
+            else:
+                mouse_pos = Vector2(-10000000000, -10000000000)
 
             blue_cursor = self.teams.blue.cursor
             blue_cursor_triggered = blue_cursor.status == "normal" and blue_cursor.has_hold()
@@ -550,10 +563,11 @@ class Team:
     name: str  # Name of the team (red/blue)
     cursor: PlayerCursor  # Colored Cursor
     money: int = 80  # Starting money
+    money_cap: int = 1000  # Max money one could have
     money_base_increase: int = 10  # Money $ Per Second ($Money/s)
     money_base_increase_grow_amount: int = 2  # Base money increase amount per upgrade
     money_increase_buy_price: int = 60  # How much it costs to buy upgrade
-    money_increase_buy_price_grow_amount: int = 30  # How much more expensive will upgrade cost
+    money_increase_buy_price_grow_amount: int = 35  # How much more expensive will upgrade cost
     money_increase_unlock_time: float = 10.0  # How long until the upgrade option unlocks for buying (seconds)
     boats: list[Boat] = field(default_factory=list)  # List containing all the Boats the team currently has
     island_health: int = 100  # Island health

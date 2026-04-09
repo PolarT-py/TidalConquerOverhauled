@@ -100,12 +100,57 @@ enabled = true
 position_mode = "topleft"
 use_camera = false
 
+# Memory Usage
+[[elements]]
+id = "debug_memory"
+type = "label"
+position = [5, 36]
+text = " RAM Usage: 69MB "
+text_size = 24
+text_font = "PirataOne"
+text_color = [255, 255, 255, 255]
+draw_background = true
+visible = true
+enabled = true
+position_mode = "topleft"
+use_camera = false
+
+# Game version
+[[elements]]
+id = "debug_version"
+type = "label"
+position = [5, 67]
+text = " Game Ver: 0.8 "
+text_size = 24
+text_font = "PirataOne"
+text_color = [255, 255, 255, 255]
+draw_background = true
+visible = true
+enabled = true
+position_mode = "topleft"
+use_camera = false
+
+# Current Platform
+[[elements]]
+id = "debug_platform"
+type = "label"
+position = [5, 98]
+text = " Platform: Linux "
+text_size = 24
+text_font = "PirataOne"
+text_color = [255, 255, 255, 255]
+draw_background = true
+visible = true
+enabled = true
+position_mode = "topleft"
+use_camera = false
+
 
 # How to move camera
 [[elements]]
 id = "how_to_move_camera"
 type = "label"
-position = [5, 36]
+position = [150, 5]
 text = ' Use "i j k l" to move Camera '
 text_size = 24
 text_font = "PirataOne"

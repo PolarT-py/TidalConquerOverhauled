@@ -18,6 +18,7 @@ class MainSettings:
     fullscreen: bool
     debug: bool
     first_time: bool
+    platform: str
 
 @dataclass
 class AudioSettings:
@@ -64,6 +65,7 @@ def load_settings() -> Settings:
         fullscreen=main_data["fullscreen"],
         debug=main_data["debug"],
         first_time=main_data["first_time"],
+        platform=main_data["platform"],
     )
     audio = AudioSettings(
         master=audio_data["master"],
@@ -87,6 +89,7 @@ def save_settings(settings: Settings) -> None:
             "fullscreen": str(settings.main.fullscreen).lower(),
             "debug": str(settings.main.debug).lower(),
             "first_time": str(settings.main.first_time).lower(),
+            "platform": settings.main.platform,
         },
         "audio": {
             "master": settings.audio.master,
@@ -106,6 +109,7 @@ def save_settings(settings: Settings) -> None:
     lines.append(f"fullscreen = {data['main']['fullscreen']}")
     lines.append(f"debug = {data['main']['debug']}")
     lines.append(f"first_time = {data['main']['first_time']}")
+    lines.append(f'platform = "{data['main']['platform']}"')
     lines.append("")
 
     # Add [audio]

@@ -274,20 +274,54 @@ class Renderer:
             text_size_override: tuple[int, int] | None = None,
             position_mode: str = "topleft",
     ):
-        # Check cache
+        # Check font cache
         font_cache = asset_manager.library["font_cache"]
         font_id = (str(text_obj.font.path), text_obj.font.size)
         if font_id not in font_cache:
             font_cache[font_id] = pg.font.Font(text_obj.font.path, text_obj.font.size)
         font: pg.font.Font = font_cache[font_id]
-        # Render font
+
+        # Check text cache
+        text_cache = asset_manager.library["text_cache"]
+
         r, g, b, a = text_obj.color
-        rendered_surface = font.render(text_obj.content, False, (r, g, b))
-        # Use override if provided                      # False for the pixel-y look
+        text_cache_id = (
+            f"{text_obj.font.path}|"
+            f"{text_obj.font.size}|"
+            f"{r},{g},{b},{a}|"
+            f"{text_obj.content}"
+        )
+
+        if text_cache_id not in text_cache:
+            # Render font
+            rendered_surface = font.render(text_obj.content, False, (r, g, b))
+            rendered_size = rendered_surface.get_size()
+
+            # Create texture and apply alpha
+            font_texture = sdl2.Texture.from_surface(self.renderer, rendered_surface)
+            font_texture.alpha = a
+
+            # Check Size (Max 50k cached items before clearing 1/4 of the oldest cache to save memory)
+            if len(text_cache) > 50000:
+                print("Cache 50k item limit reached. Trimming 1/4 of the oldest cache...")
+                remove_count = max(1, len(text_cache) // 4)
+                for _ in range(remove_count):
+                    if not text_cache:
+                        break
+                    oldest_key = next(iter(text_cache))
+                    del text_cache[oldest_key]
+
+            # Save to cache
+            text_cache[text_cache_id] = Texture2D(font_texture, rendered_size)
+
+        cached_text: Texture2D = text_cache[text_cache_id]
+
+        # Use override if provided
         if text_size_override is not None:
             rendered_size = text_size_override
         else:
-            rendered_size = rendered_surface.get_size()
+            rendered_size = cached_text.size
+
         # Anchor it based on position mode
         tw, th = rendered_size
         x, y = position
@@ -298,7 +332,6 @@ class Renderer:
             x -= tw
         elif position_mode != "topleft":
             raise ValueError(f'Invalid position_mode: {position_mode}')
+
         # Draw it
-        font_texture = sdl2.Texture.from_surface(self.renderer, rendered_surface)
-        font_texture.alpha = a
-        self.draw_texture(Texture2D(font_texture, rendered_size), Vector2(x, y))
+        self.draw_texture(Texture2D(cached_text.texture, rendered_size), Vector2(x, y))

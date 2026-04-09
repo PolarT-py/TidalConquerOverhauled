@@ -122,7 +122,7 @@ class Boat:
                 color = (255, 0, 0)
             renderer.draw_rect(self.rect, color=(*color, 100))
         # Draw Health Bar
-        renderer.draw_rect(Rect(*self.position-Vector2(25, -50), 50, 5), (0, 0, 0, 100))  # BG
+        renderer.draw_rect(Rect(*self.position-Vector2(25, -50), 50, 5), (0, 0, 0, 50))  # BG
         renderer.draw_rect(Rect(*self.position-Vector2(23, -51), ((46 * (self.health / self.health_max)) if self.health > 0 else 0), 3), (255, 0, 0, 255))  # FG
 
     def draw_others(self, renderer, debug_mode=False):  # For other classes
