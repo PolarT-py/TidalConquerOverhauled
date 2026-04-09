@@ -18,12 +18,13 @@ class UIElement:
             asset_manager: AssetManager,
             mixer: Mixer,
             input_manager: InputManager,
-            use_camera=False
+            use_camera=False,
+            enabled=True
         ):
         self.id = None
         self.rect = None
         self.visible = True
-        self.enabled = True
+        self.enabled = enabled
         self.use_camera = use_camera
         self.renderer = renderer
         self.asset_manager = asset_manager
@@ -42,6 +43,12 @@ class UIScene:
         self.name = name
         self.elements = []
         self.visible = True
+
+    def get(self, e_id):
+        for e in self.elements:
+            if e.id == e_id:
+                return e
+        return None
 
     def call_ui_beginning_functions(self, settings):  # Run at start of game
         for e in self.elements:
@@ -114,8 +121,9 @@ class UIButton(UIElement):
                  text_font=None,
                  position_mode="topleft",
                  use_camera=False,
-                 shadow=True,):
-        super().__init__(renderer, asset_manager, mixer, input_manager)
+                 shadow=True,
+                 enabled=True):
+        super().__init__(renderer, asset_manager, mixer, input_manager, enabled)
         self.rect = pg.Rect(rect)
         self.hovered = False
         self.pressed_inside = False
@@ -135,35 +143,38 @@ class UIButton(UIElement):
             self.hovered = False
             return False  # Mouse position Out of Virtual Space
         mx, my = mouse_position
+
         # Fetch custom Cursor Position
-        if custom_cursor is not None: cx, cy = custom_cursor.position + camera.offset
-        else: cx, cy = Vector2(-10000000000, -10000000000)
-        # Set custom cursor click
+        if custom_cursor is not None:
+            cx, cy = custom_cursor.position + camera.offset
+        else:
+            cx, cy = Vector2(-10000000000, -10000000000)
+
+        # Set click states
         mouse_clicked = self.input_manager.was_mouse_pressed(1)
-        custom_cursor_clicked = False if custom_cursor is None\
-            else (custom_cursor.has_normal_click() if custom_cursor.status == "normal" else False)
+        custom_cursor_clicked = False if custom_cursor is None else custom_cursor.has_normal_click()
 
         # Check if it's enabled
-        if not self.enabled: return False
+        if not self.enabled:
+            return False
 
-        # Check if mouse is hovering
+        # Check hover
         new_rect = self.get_draw_rect()
         if self.use_camera:  # Use Main camera
             new_rect.x += self.renderer.main_camera.offset.x
             new_rect.y += self.renderer.main_camera.offset.y
-        self.hovered = new_rect.collidepoint(mx, my)  # Get hover from mouse
-        if not self.hovered: self.hovered = new_rect.collidepoint(cx, cy)  # If None, get from custom cursor
-        if self.hovered and (mouse_clicked or custom_cursor_clicked):
-            self.pressed_inside = True
 
-        # Check if mouse is clicked
-        if mouse_clicked or custom_cursor_clicked:
-            if self.hovered and self.pressed_inside:
-                self.pressed_inside = False
-                self.mixer.play_sound("effects/click1")
-                self.update_others(dt)
-                return True
-            self.pressed_inside = False
+        mouse_hovered = new_rect.collidepoint(mx, my)
+        custom_hovered = False if custom_cursor is None else new_rect.collidepoint(cx, cy)
+
+        self.hovered = mouse_hovered or custom_hovered
+
+        # Check if pressed by matching input source
+        if (mouse_hovered and mouse_clicked) or (custom_hovered and custom_cursor_clicked):
+            self.mixer.play_sound("effects/click1")
+            self.update_others(dt)
+            return True
+
         self.update_others(dt)
         return False
 
@@ -236,8 +247,9 @@ class UITextureButton(UIButton):
                  texture,
                  draw_background=False,
                  position_mode="topleft",
-                 use_camera=False):
-        super().__init__(rect, renderer, asset_manager, mixer, input_manager)
+                 use_camera=False,
+                 enabled=True):
+        super().__init__(rect, renderer, asset_manager, mixer, input_manager, enabled=enabled)
         self.texture: Texture2D | None = texture
         self.draw_background = draw_background
         self.position_mode = position_mode
@@ -264,7 +276,7 @@ class UITextureButton(UIButton):
                 position_mode="center",
             )
             # If: want to draw Rect Foreground (Debug/Hitbox Check)
-            if self.draw_background:
+            if self.draw_background or not self.enabled:
                 color = (100, 100, 100, 100) if not (self.hovered and self.enabled) else (160, 160, 160, 100)
                 self.renderer.draw_rect(draw_rect, color)
 

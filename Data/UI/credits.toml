@@ -93,8 +93,8 @@ use_camera = true
 [[elements]]
 id = "credit_l7"
 type = "label"
-position = [1580, 456]
-text = ' Github Page: '
+position = [1580, 414]
+text = ' "coin.ogg" by robbeman (CC0) – freesound.org '
 text_size = 32
 text_font = "PirataOne"
 text_color = [255, 255, 255, 255]
@@ -106,7 +106,33 @@ use_camera = true
 [[elements]]
 id = "credit_l8"
 type = "label"
-position = [1580, 498]
+position = [1580, 456]
+text = ' https://freesound.org/s/495643/ '
+text_size = 32
+text_font = "PirataOne"
+text_color = [255, 255, 255, 255]
+draw_background = true
+visible = true
+enabled = true
+use_camera = true
+
+[[elements]]
+id = "credit_l9"
+type = "label"
+position = [1580, 540]
+text = ' Github Page: '
+text_size = 32
+text_font = "PirataOne"
+text_color = [255, 255, 255, 255]
+draw_background = true
+visible = true
+enabled = true
+use_camera = true
+
+[[elements]]
+id = "credit_l10"
+type = "label"
+position = [1580, 582]
 text = ' https://github.com/PolarT-py/TidalConquerOverhauled '
 text_size = 32
 text_font = "PirataOne"

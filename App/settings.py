@@ -17,6 +17,7 @@ class MainSettings:
     vsync: bool
     fullscreen: bool
     debug: bool
+    first_time: bool
 
 @dataclass
 class AudioSettings:
@@ -62,6 +63,7 @@ def load_settings() -> Settings:
         vsync=main_data["vsync"],
         fullscreen=main_data["fullscreen"],
         debug=main_data["debug"],
+        first_time=main_data["first_time"],
     )
     audio = AudioSettings(
         master=audio_data["master"],
@@ -84,6 +86,7 @@ def save_settings(settings: Settings) -> None:
             "vsync": str(settings.main.vsync).lower(),
             "fullscreen": str(settings.main.fullscreen).lower(),
             "debug": str(settings.main.debug).lower(),
+            "first_time": str(settings.main.first_time).lower(),
         },
         "audio": {
             "master": settings.audio.master,
@@ -102,6 +105,7 @@ def save_settings(settings: Settings) -> None:
     lines.append(f"vsync = {data['main']['vsync']}")
     lines.append(f"fullscreen = {data['main']['fullscreen']}")
     lines.append(f"debug = {data['main']['debug']}")
+    lines.append(f"first_time = {data['main']['first_time']}")
     lines.append("")
 
     # Add [audio]

@@ -61,6 +61,7 @@ class Game:
 
         # Set Start Actions
         self.mixer.play_music("music/Thatched Villagers")
+        print("First Time:", self.settings.main.first_time)
 
     def handle_events(self):
         for event in pg.event.get():
@@ -76,6 +77,7 @@ class Game:
         for e in self.scene_manager.update(dt):
             # Main Menu
             if e.id == "start_button":
+                self.scene_manager.current_scene.get("resume_button").enabled = True  # Enable resume button
                 self.scene_manager.set_scene("in_game", self.mixer)
                 self.renderer.camera.move(Vector2(0, -450))
                 self.ingame.new()
@@ -135,10 +137,28 @@ class Game:
                 self.ingame.pause()
         # Update Elements every frame
         for e in self.scene_manager.current_scene.elements:
-            if e.id == "blue_money":
+            if e.id == "game_uptime":
+                minutes = floor(self.ingame.uptime / 60)
+                seconds = floor(self.ingame.uptime % 60)
+                minutes_plural = "" if minutes <= 1 else "s"
+                seconds_plural = "" if seconds <= 1 else "s"
+                minutes_string = f"{minutes} minute{minutes_plural}"
+                seconds_string = f"{seconds} second{seconds_plural}"
+                if minutes <= 0:
+                    time_string = f" Game Time: {seconds_string} "
+                elif seconds < 1:
+                    time_string = f" Game Time: {minutes_string} "
+                else:
+                    time_string = f" Game Time: {minutes_string} {seconds_string} "
+                e.text.content = str(time_string)
+            elif e.id == "blue_money":
                 e.text.content = str(floor(self.ingame.teams.blue.money))
             elif e.id == "red_money":
                 e.text.content = str(floor(self.ingame.teams.red.money))
+            elif e.id == "blue_money_per_second":
+                e.text.content = f"{self.ingame.teams.blue.money_base_increase}c/s"
+            elif e.id == "red_money_per_second":
+                e.text.content = f"{self.ingame.teams.red.money_base_increase}c/s"
         # Update Debug Elements Interaction
         for e in self.debug_menu.update_all(dt):
             if e.id == "debug_test_button_1":  # Anchor Camera to Main Menu (0, 0)
@@ -156,6 +176,7 @@ class Game:
         # Check if toggle Debug Mode
         if self.input_manager.was_key_pressed(pg.K_F3):
             self.debug_mode = not self.debug_mode
+            self.ingame.debug_mode = self.debug_mode
 
     def update(self, dt: float):
         # Update InGame

@@ -1,19 +1,25 @@
+from math import sin
 from pygame import Vector2, Rect
 from App.asset_manager import AssetManager
 from App.renderer import Sprite2D
+# from Entities.projectiles import CannonBall
 
 
 class Boat:
     # External Data
     name = "Generic Boat"  # Name
-    id = "GenericBoat"  # ID
+    id = "Boat"  # ID (Class name)
     cost = 10  # Cost to buy the boat
     texture_id = "boats/boat1_"  # ID for getting the texture for boat. After the _ is team name.
     def __init__(self, team_name: str, position: Vector2, lane: int, asset_manager: AssetManager):
         # Main Data
+        self.live_time: float = 0  # Time it's been alive. Used for bobbing effect
+        self.SWAY_AMPLIFIER: float = 2.0
         self.position: Vector2 = position  # Position (Centered)
         self.rect: Rect = Rect((*position, 100, 35))  # X Y Position, Width, Height
         self.rect_offset: Vector2 = Vector2(0, 25)  # Offset for rect (Applied in self.fix_other_positions)
+        self.texture_offset: Vector2 = Vector2(0, 0)  # Offset for texture rendering
+        self.sway_offset: Vector2 = Vector2(0, 0)  # Offset for a bobbing effect
         self.lane: int = lane  # Which lane (1/2/3) it's on
         self.sprite: Sprite2D = Sprite2D(  # Boat Sprite
             texture=asset_manager.get("textures", f"{self.texture_id}{team_name.upper()}"),  # Get Texture
@@ -26,9 +32,13 @@ class Boat:
         self.damage: int = 25  # Boat's Damage (When collision, damage is exchanged twice. Technically 25==50DMG)
         self.dead: bool = False  # If the boat is dead or not
         self.won: bool = False  # If the boat has captured the opponent's island (island_health<=0)
+        self.damaged_island: bool = False  # If the boat damaged the island or not
         self.fix_direction()  # Fix the Boat's direction immediately
         # Fix rect position to center immediately
         self.fix_other_positions()
+        # Other stuff
+        self.cannonballs = []
+        self.mines = []
 
     def get_opponent_team_name(self) -> str:  # Get opponent's team name
         return "red" if self.team_name == "blue" else "blue"
@@ -41,7 +51,8 @@ class Boat:
         self.rect.center = self.position  # Center Rect position to self.position
         self.rect.x += self.rect_offset.x  # Apply Rect offset
         self.rect.y += self.rect_offset.y  # Apply Rect offset
-        self.sprite.position = self.position  # Set Sprite position to self.position
+        # Apply Position, Texture offset, and Sway offset
+        self.sprite.position = self.position + self.texture_offset + self.sway_offset
 
     def kill(self):
         # Set self to dead
@@ -54,6 +65,9 @@ class Boat:
 
     def update_basic(self, dt: float, teams, team_edges: dict[str, int]):
         if not self.dead:
+            # Bobbing effect
+            self.live_time += dt
+            self.sway_offset.y = sin(self.live_time) * self.SWAY_AMPLIFIER
             # Move the Boat
             self.position.x += self.speed * dt
             # Center the Rect
@@ -74,25 +88,29 @@ class Boat:
             if self.health <= 0:
                 self.kill()
             # Check if it reached the opponent's island
-            if self.team_name == "blue" and self.position.x >= team_edges["red"]:
+            if self.team_name == "blue" and self.rect.right >= team_edges["red_hit"]:
                 # If it reaches the Island, deal damage then die
                 teams.red.island_health -= self.damage
+                self.damaged_island = True
                 self.kill()
                 # Check if the Island has <= 0 health. If so, set off a Win so the Game Manager can clean up
                 if teams.red.island_health <= 0:
                     self.win()
-            elif self.team_name == "red" and self.position.x <= team_edges["blue"]:
+            elif self.team_name == "red" and self.rect.left <= team_edges["blue_hit"]:
                 # If it reaches the Island, deal damage then die
                 teams.blue.island_health -= self.damage
+                self.damaged_island = True
                 self.kill()
                 # Check if the Island has <= 0 health, then win if so
                 if teams.blue.island_health <= 0:
                     self.win()
 
-    def update(self, dt: float, teams, team_edges: dict[str, int]):
+    def update(self, dt: float, teams, team_edges: dict[str, int], asset_manager, mixer):
         self.update_basic(dt, teams, team_edges)
 
     def draw(self, renderer, debug_mode=False):
+        # Draw others
+        self.draw_others(renderer, debug_mode)
         # Draw Sprite
         renderer.draw_sprite(self.sprite)
         if debug_mode:  # Is debug?
@@ -102,3 +120,6 @@ class Boat:
             else:
                 color = (255, 0, 0)
             renderer.draw_rect(self.rect, color=(*color, 100))
+
+    def draw_others(self, renderer, debug_mode=False):  # For other classes
+        pass

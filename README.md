@@ -9,3 +9,7 @@ Anyway, Tidal Conquer: Overhauled is a 2-player game, originally made for me and
 In this game, you are your opponent have to strategically place boats in 3 lanes, defend and attack, and whoever's boat reaches the other side's island first wins.
 
 Not enough budget to make a better description yet :(
+
+
+---
+Disclaimer: The MIT License applies to all versions of this game.

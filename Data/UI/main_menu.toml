@@ -53,7 +53,7 @@ rect = [450, 550, 100, 50]
 texture = "buttons/continuebutton"
 draw_background = false
 visible = true
-enabled = true
+enabled = false  # Enables later after you start a game
 use_camera = true
 
 [[elements]]

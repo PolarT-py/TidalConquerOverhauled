@@ -6,11 +6,14 @@ from App.mixer import Mixer
 from App.input import InputManager
 from World.background import Background
 from Entities.boats import Boat
-from Entities.explosion import Explosion
+from Entities.classic_boats import CannonBoat
+from Entities.explosion import Explosion, BlueExplosion, RedExplosion
+from Entities.projectiles import CannonBall
 from App.boat_loader import load_boats
-from App.ui import UIRadioButtonGroup, UIRadioButton, UILabel
+from App.ui import UIRadioButtonGroup, UIRadioButton, UILabel, UITextureButton
 from App.clock import Timer
 from App.controllers import BlueController, RedController
+from App.debug import debug_print
 
 
 # The actual Gameplay part of the Game
@@ -20,6 +23,8 @@ class InGame:
                  asset_manager: AssetManager,
                  mixer: Mixer,
                  input_manager: InputManager):
+        # Cool Variables
+        self.uptime = 0
         # Set Managers
         self.renderer: Renderer = renderer
         self.asset_manager: AssetManager = asset_manager
@@ -30,16 +35,19 @@ class InGame:
         self.boat_registry: dict = load_boats()
         # Set States
         self.running: bool = False
+        self.debug_mode: bool = False  # Changed in game.py
         # Declare Teams
         self.teams: Teams | None = None
         # Declare Objects (Explosions, Cannonballs, Mines, etc)
-        self.explosions: list[Explosion] | None = None
-        self.cannonballs: list | None = None
-        self.mines: list | None = None
+        self.explosions: list[Explosion] | None = None  # Explosions
+        self.cannonballs: list | None = None  # Cannonballs that have been orphaned
+        self.mines: list | None = None  # Mines that have been orphaned
         # Declare Constants
         self.TEAM_BOAT_EDGE_X: dict[str, int] = {  # Team Boat Spawn/Win X positions
             "blue": 200,
+            "blue_hit": 160,
             "red": 1080,
+            "red_hit": 1120,
         }
         self.LANE_LEVEL_Y: dict[int, int] = {  # Y level for each Lane (To spawn boats in)
             1: 870,
@@ -50,24 +58,55 @@ class InGame:
             "blue_start_x": 100,
             "red_start_x": 1180,
             "button_space": 74,
-            "boundary": Rect(0, 450, 1280, 720+480),
+            "boundary": Rect(16, 458, 1280, 720+480-38),
         }
         self.lanes = Lanes()
         # Init Boat Selector
         self.boat_selector_blue = UIRadioButtonGroup("Speed Boat", self.renderer)
         self.boat_selector_red = UIRadioButtonGroup("Speed Boat", self.renderer)
         self.setup_boat_selection_ui()
+        # Init Team Upgrades
+        self.money_upgrade_blue = UITextureButton(self.renderer, self.asset_manager,
+                                                  self.mixer, self.input_manager,
+                                                  (32, 1138, 50, 50),
+                                                  self.asset_manager.get("textures",
+                                                                         "buttons/money_upgrade_button"),
+                                                  use_camera=True, position_mode="center",
+                                                  enabled=False)
+        self.money_upgrade_red = UITextureButton(self.renderer, self.asset_manager,
+                                                  self.mixer, self.input_manager,
+                                                  (1248, 1138, 50, 50),
+                                                  self.asset_manager.get("textures",
+                                                                         "buttons/money_upgrade_button"),
+                                                  use_camera=True, position_mode="center",
+                                                 enabled=False)
+        self.money_upgrade_blue_label = UILabel(Vector2(32, 1105), "$69",
+                                                self.renderer, self.asset_manager,
+                                                self.mixer, self.input_manager,
+                                                use_camera=True, position_mode="center",
+                                                text_font=self.asset_manager.get("fonts",
+                                                                                 "PirataOne"))
+        self.money_upgrade_red_label = UILabel(Vector2(1248, 1105), "$69",
+                                                self.renderer, self.asset_manager,
+                                                self.mixer, self.input_manager,
+                                                use_camera=True, position_mode="center",
+                                                text_font=self.asset_manager.get("fonts",
+                                                                                "PirataOne"))
         # New Game
         self.new(False)
 
     def setup_boat_selection_ui(self):
         i = 0
-        for boat_class in self.boat_registry.values():
+        boat_classes = sorted(  # Sorted by cost
+            self.boat_registry.values(),
+            key=lambda cls: cls.cost
+        )
+        for boat_class in boat_classes:
             i += 1
-            print("Loaded:", boat_class)
-            print("-", boat_class.name)
-            print("-", boat_class.cost)
-            print("-", boat_class.texture_id)
+            debug_print(f"Loaded: {boat_class}", self.debug_mode)
+            debug_print(f"- {boat_class.name}", self.debug_mode)
+            debug_print(f"- {boat_class.cost}", self.debug_mode)
+            debug_print(f"- {boat_class.texture_id}", self.debug_mode)
             self.boat_selector_blue.add(boat_class.name,
                                         UIRadioButton(
                                             self.renderer,
@@ -119,19 +158,26 @@ class InGame:
 
     # Start a new game
     def new(self, start=True):
+        # Cool Variables
+        self.uptime = 0
         # Set Teams
         self.teams = Teams(Team("blue", PlayerCursor("blue",
                                                      Vector2(200, 800),
                                                      BlueController(self.input_manager),
+                                                     self.BOAT_SELECTOR["boundary"],
                                                      self.asset_manager)),
                            Team("red", PlayerCursor("red",
                                                     Vector2(1080, 800),
                                                     RedController(self.input_manager),
+                                                    self.BOAT_SELECTOR["boundary"],
                                                     self.asset_manager)))
         # Set Objects (Explosions, Cannonballs, Mines, etc)
         self.explosions = []
-        self.cannonballs = []
+        self.cannonballs: list[CannonBall] = []
         self.mines = []
+        # Reset Boat Selector Default Option
+        self.boat_selector_blue.select("Speed Boat")
+        self.boat_selector_red.select("Speed Boat")
         # Start the Game if said so
         if start:
             self.unpause()
@@ -149,14 +195,15 @@ class InGame:
                                              self.asset_manager))
             self.teams.red.money -= self.boat_registry[boat].cost
             self.teams.red.cursor.wait()
+        self.mixer.play_sound("effects/build")
 
     def unpause(self): self.running = True  # Unpauses the game
 
     def pause(self): self.running = False  # Pauses the game
 
     def update_money(self, dt):  # Update Money
-        self.teams.blue.money += self.teams.blue.money_base_increase * self.teams.blue.money_multiplier * dt
-        self.teams.red.money += self.teams.red.money_base_increase * self.teams.red.money_multiplier * dt
+        self.teams.blue.money += self.teams.blue.money_base_increase * dt
+        self.teams.red.money += self.teams.red.money_base_increase * dt
 
     def update(self, dt):
         # Update Background (Sky, Sea, Islands, Lanes animation)
@@ -164,6 +211,8 @@ class InGame:
 
         # Update Game Objects
         if self.running:
+            # Update Uptime Time
+            self.uptime += dt
             # Update Money
             self.update_money(dt)
 
@@ -182,14 +231,54 @@ class InGame:
             if selected_red:
                 self.teams.red.cursor.selected_item = selected_red.id
 
+            # Update Upgrade Money Buttons
+            blue_money_upgrade_bought = self.money_upgrade_blue.update(dt, custom_cursor=self.teams.blue.cursor,
+                                           camera=self.renderer.main_camera)
+            if blue_money_upgrade_bought and\
+                self.teams.blue.money >= self.teams.blue.money_increase_buy_price:  # Blue Bought an upgrade
+                # Take away the money
+                self.teams.blue.money -= self.teams.blue.money_increase_buy_price
+                # Increase Team's money/second
+                self.teams.blue.money_base_increase += self.teams.blue.money_base_increase_grow_amount
+                # Make upgrade buy price higher
+                self.teams.blue.money_increase_buy_price += self.teams.blue.money_increase_buy_price_grow_amount
+            red_money_upgrade_bought = self.money_upgrade_red.update(dt, custom_cursor=self.teams.red.cursor,
+                                           camera=self.renderer.main_camera)
+            if red_money_upgrade_bought and\
+                self.teams.red.money >= self.teams.red.money_increase_buy_price:  # Red Bought an upgrade
+                # Take away the money
+                self.teams.red.money -= self.teams.red.money_increase_buy_price
+                # Increase Team's money/second
+                self.teams.red.money_base_increase += self.teams.red.money_base_increase_grow_amount
+                # Make upgrade buy price higher
+                self.teams.red.money_increase_buy_price += self.teams.red.money_increase_buy_price_grow_amount
+            # Update the Upgrade Money Labels
+            self.money_upgrade_blue_label.text.content = f"${self.teams.blue.money_increase_buy_price}"
+            self.money_upgrade_blue_label.update(dt)
+            self.money_upgrade_red_label.text.content = f"${self.teams.red.money_increase_buy_price}"
+            self.money_upgrade_red_label.update(dt)
+
             # Update Lanes placement Checks
 
+            # Get mouse pos
+            mouse_pos = self.input_manager.mouse_pos_virtual - self.renderer.main_camera.offset
+
             blue_cursor = self.teams.blue.cursor
-            blue_clicked = blue_cursor.has_normal_click()
-
-            if blue_cursor.status == "normal" and blue_clicked:
+            blue_cursor_triggered = blue_cursor.status == "normal" and blue_cursor.has_hold()
+            blue_mouse_triggered = (
+                    mouse_pos is not None
+                    and self.input_manager.was_mouse_pressed(1)
+                    and mouse_pos.x < 640 and blue_cursor.status == "normal"
+            )
+            # Check mouse and playerCursor triggers
+            if blue_cursor_triggered:
                 blue_pos = blue_cursor.position
-
+            elif blue_mouse_triggered:
+                blue_pos = mouse_pos
+            else:
+                blue_pos = None
+            # Check which Lane is clicked
+            if blue_pos is not None:
                 if self.lanes.one.rect.collidepoint(blue_pos):  # Blue Place Lane 1
                     if self.teams.blue.money >= self.boat_registry[blue_cursor.selected_item].cost:
                         self.add_boat("blue", blue_cursor.selected_item, 1)
@@ -207,11 +296,21 @@ class InGame:
                         blue_cursor.poor()
 
             red_cursor = self.teams.red.cursor
-            red_clicked = red_cursor.has_normal_click()
-
-            if red_cursor.status == "normal" and red_clicked:
+            red_cursor_triggered = red_cursor.status == "normal" and red_cursor.has_hold()
+            red_mouse_triggered = (
+                    mouse_pos is not None
+                    and self.input_manager.was_mouse_pressed(1)
+                    and mouse_pos.x >= 640 and red_cursor.status == "normal"
+            )
+            # Check mouse and playerCursor triggers
+            if red_cursor_triggered:
                 red_pos = red_cursor.position
-
+            elif red_mouse_triggered:
+                red_pos = mouse_pos
+            else:
+                red_pos = None
+            # Check which Lane is clicked
+            if red_pos is not None:
                 if self.lanes.one.rect.collidepoint(red_pos):  # Red Place Lane 1
                     if self.teams.red.money >= self.boat_registry[red_cursor.selected_item].cost:
                         self.add_boat("red", red_cursor.selected_item, 1)
@@ -228,21 +327,57 @@ class InGame:
                     else:  # They aren't rich enough
                         red_cursor.poor()
 
+            # Loop through all Cannonballs to update them
+            for cannonball in self.cannonballs:
+                cannonball.update(dt)
+                if cannonball.dead:
+                    self.cannonballs.remove(cannonball)
+
             # Loop through all boats to update them
             for boat in self.teams.red.boats + self.teams.blue.boats:
-                boat.update(dt, self.teams, self.TEAM_BOAT_EDGE_X)
+                boat.update(dt, self.teams, self.TEAM_BOAT_EDGE_X, self.asset_manager, self.mixer)
+                if boat.__class__ == CannonBoat:
+                    shoot = boat.update_shooting(dt, self.asset_manager, self.mixer)
+                    if shoot is not None:
+                        self.cannonballs.append(shoot)
 
             # Loop through all boats to clean them up
             for boat in self.teams.red.boats + self.teams.blue.boats:
-                if boat.dead:
+                for cannonball in self.cannonballs:  # See cannonball collision
+                    if cannonball.rect.colliderect(boat.rect) and not cannonball.despawn:  # Cannonball hit
+                        if cannonball.team != boat.team_name:  # Prevent friendly fire
+                            self.explosions.append(Explosion(boat.position, self.asset_manager))
+                            self.mixer.play_sound("effects/break")
+                            boat.health -= cannonball.damage
+                            if boat.health <= 0: boat.kill()
+                            cannonball.kill()
+                if boat.dead:  # If dead
+                    self.mixer.play_sound("effects/break")
+                    if boat.__class__ == CannonBoat:
+                        boat: CannonBoat = boat
+                        for cannonball2 in boat.cannonballs:  #  Put cannonballs in an orphaned cannonballs group
+                            self.cannonballs.append(cannonball2)
                     if boat.team_name == "blue":  # If Blue
                         # Summon Explosion
-                        self.explosions.append(Explosion(boat.position, self.asset_manager))
+                        if boat.damaged_island:
+                            self.explosions.append(BlueExplosion(boat.position, self.asset_manager))
+                        else:
+                            self.explosions.append(Explosion(boat.position, self.asset_manager))
                         self.teams.blue.boats.remove(boat)
                     elif boat.team_name == "red":  # If Red
                         # Summon Explosion
-                        self.explosions.append(Explosion(boat.position, self.asset_manager))
+                        if boat.damaged_island:
+                            self.explosions.append(RedExplosion(boat.position, self.asset_manager))
+                        else:
+                            self.explosions.append(Explosion(boat.position, self.asset_manager))
                         self.teams.red.boats.remove(boat)
+                if boat.won:  # Win
+                    if boat.team_name == "blue":
+                        print(boat.team_name, "won!")
+                        self.running = False
+                    elif boat.team_name == "red":
+                        print(boat.team_name, "won!")
+                        self.running = False
 
             # Loop through all explosions to update them
             for explosion in self.explosions:
@@ -267,6 +402,10 @@ class InGame:
                 self.lanes.three.color
             )
 
+        # Draw Cannonballs
+        for cannonball in self.cannonballs:
+            cannonball.draw(self.renderer, self.debug_mode)
+
         # Draw Boats
         for lane in (1, 2, 3):
             for boat in self.teams.red.boats + self.teams.blue.boats:
@@ -280,6 +419,13 @@ class InGame:
         # Draw Boat Selector UI
         self.boat_selector_blue.draw_all()
         self.boat_selector_red.draw_all()
+
+        # Draw Upgrade Money Buttons
+        self.money_upgrade_blue.draw()
+        self.money_upgrade_red.draw()
+        # Draw Upgrade Money Labels
+        self.money_upgrade_blue_label.draw()
+        self.money_upgrade_red_label.draw()
 
         # Draw the Island Health bars
 
@@ -303,13 +449,14 @@ class InGame:
         )
 
         # Draw Cursors
+        self.renderer.reset_camera()
         if self.running:  # Only draw when In-Game
             self.teams.blue.cursor.draw(self.renderer)
             self.teams.red.cursor.draw(self.renderer)
 
 
 class PlayerCursor:
-    def __init__(self, team: str, position: Vector2, controller, asset_manager: AssetManager):
+    def __init__(self, team: str, position: Vector2, controller, boundary, asset_manager: AssetManager):
         self.team = team  # Set Team
         self.position: Vector2 = Vector2(position)
         # Set Textures
@@ -336,6 +483,7 @@ class PlayerCursor:
         self.poor_timer = Timer(1, start=False, repeat=False)
         # Set Constant
         self.SPEED = 350
+        self.BOUNDARY: Rect = boundary
 
     def clear_statuses(self):
         self.loading_animation_timer = Timer(0.1, start=False, repeat=False)  # Set repeat when reset
@@ -359,6 +507,9 @@ class PlayerCursor:
     def has_normal_click(self) -> bool:
         return self._just_clicked
 
+    def has_hold(self) -> bool:
+        return self._prev_click
+
     def update(self, dt):
         # Change status when timer activates
         if self.poor_timer.update(dt):  # If poor Timer ends
@@ -372,6 +523,15 @@ class PlayerCursor:
         # Check Movement/Click input
         movement = self.controller.get_movement()
         self.position += movement * self.SPEED * dt  # Update position
+        # Make sure the Cursor is in-bounds
+        if self.position.x > self.BOUNDARY.w:
+            self.position.x = self.BOUNDARY.w
+        elif self.position.x < self.BOUNDARY.x:
+            self.position.x = self.BOUNDARY.x
+        if self.position.y > self.BOUNDARY.h:
+            self.position.y = self.BOUNDARY.h
+        elif self.position.y < self.BOUNDARY.y:
+            self.position.y = self.BOUNDARY.y
 
         # Detect NORMAL Click
         current_click = self.controller.get_click()
@@ -388,13 +548,16 @@ class PlayerCursor:
 
 @dataclass
 class Team:
-    name: str
-    cursor: PlayerCursor
-    money: int = 80
-    money_base_increase: int = 10  # $/ps
-    money_multiplier: float = 1.0
-    boats: list[Boat] = field(default_factory=list)
-    island_health: int = 100
+    name: str  # Name of the team (red/blue)
+    cursor: PlayerCursor  # Colored Cursor
+    money: int = 80  # Starting money
+    money_base_increase: int = 10  # Money $ Per Second ($Money/s)
+    money_base_increase_grow_amount: int = 2  # Base money increase amount per upgrade
+    money_increase_buy_price: int = 60  # How much it costs to buy upgrade
+    money_increase_buy_price_grow_amount: int = 30  # How much more expensive will upgrade cost
+    money_increase_unlock_time: float = 10.0  # How long until the upgrade option unlocks for buying (seconds)
+    boats: list[Boat] = field(default_factory=list)  # List containing all the Boats the team currently has
+    island_health: int = 100  # Island health
 
 
 @dataclass

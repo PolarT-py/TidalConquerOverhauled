@@ -3,6 +3,20 @@ name = "in_game"
 
 # In Game UI Elements
 [[elements]]
+id = "game_uptime"
+type = "label"
+position = [5, 600]
+text = "Game Time: 7 Minute 27 Seconds"  # - Still haunts him to this day
+text_size = 24
+text_font = "PirataOne"
+text_color = [255, 255, 255, 255]
+draw_background = true
+visible = true
+enabled = true
+position_mode = "topleft"
+use_camera = true
+
+[[elements]]
 id = "blue_money"
 type = "label"
 position = [50, 700]
@@ -24,6 +38,34 @@ text = "6969"
 text_size = 32
 text_font = "PirataOne"
 text_color = [255, 255, 255, 255]
+draw_background = false
+visible = true
+enabled = true
+position_mode = "topright"
+use_camera = true
+
+[[elements]]
+id = "blue_money_per_second"
+type = "label"
+position = [10, 680]
+text = "69c/s"
+text_size = 18
+text_font = "PirataOne"
+text_color = [255, 255, 255, 225]
+draw_background = false
+visible = true
+enabled = true
+position_mode = "topleft"
+use_camera = true
+
+[[elements]]
+id = "red_money_per_second"
+type = "label"
+position = [1270, 680]
+text = "69c/s"
+text_size = 18
+text_font = "PirataOne"
+text_color = [255, 255, 255, 225]
 draw_background = false
 visible = true
 enabled = true
