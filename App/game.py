@@ -3,7 +3,6 @@ import pygame as pg
 from pygame import Vector2
 from pathlib import Path
 from math import floor
-from psutil import Process
 from os import getpid
 
 from App.debug import debug_print
@@ -37,6 +36,7 @@ class Game:
 
         # Get Game Process on Desktop
         if self.settings.main.platform == "Desktop":
+            from psutil import Process
             self.process = Process(getpid())
         else:
             self.process = None  # Unavailable for mobile
