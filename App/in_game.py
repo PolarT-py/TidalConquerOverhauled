@@ -242,6 +242,7 @@ class InGame:
                 self.teams.blue.money_base_increase += self.teams.blue.money_base_increase_grow_amount
                 # Make upgrade buy price higher
                 self.teams.blue.money_increase_buy_price += self.teams.blue.money_increase_buy_price_grow_amount
+                self.mixer.play_sound("effects/coin")
             red_money_upgrade_bought = self.money_upgrade_red.update(dt, custom_cursor=self.teams.red.cursor,
                                            camera=self.renderer.main_camera)
             if red_money_upgrade_bought and\
@@ -252,6 +253,7 @@ class InGame:
                 self.teams.red.money_base_increase += self.teams.red.money_base_increase_grow_amount
                 # Make upgrade buy price higher
                 self.teams.red.money_increase_buy_price += self.teams.red.money_increase_buy_price_grow_amount
+                self.mixer.play_sound("effects/coin")
             # Update the Upgrade Money Labels
             self.money_upgrade_blue_label.text.content = f"${self.teams.blue.money_increase_buy_price}"
             self.money_upgrade_blue_label.update(dt)
