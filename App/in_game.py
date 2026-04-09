@@ -348,7 +348,7 @@ class InGame:
                 for cannonball in self.cannonballs:  # See cannonball collision
                     if cannonball.rect.colliderect(boat.rect) and not cannonball.despawn:  # Cannonball hit
                         if cannonball.team != boat.team_name and\
-                            cannonball.lane == boat.lane:  # Prevent friendly fire and only hit in same lane
+                            cannonball.lane == boat.lane:  # Prevent friendly fire and only hit in the same lane
                             self.explosions.append(Explosion(boat.position, self.asset_manager))
                             self.mixer.play_sound("effects/break")
                             boat.health -= cannonball.damage
