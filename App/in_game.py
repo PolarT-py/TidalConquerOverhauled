@@ -67,6 +67,8 @@ class InGame:
         self.boat_selector_blue = UIRadioButtonGroup("Speed Boat", self.renderer)
         self.boat_selector_red = UIRadioButtonGroup("Speed Boat", self.renderer)
         self.setup_boat_selection_ui()
+        # Init Timers
+        self.eco_unlock_timer: Timer | None = None
         # Init Team Upgrades
         self.money_upgrade_blue = UITextureButton(self.renderer, self.asset_manager,
                                                   self.mixer, self.input_manager,
@@ -180,6 +182,11 @@ class InGame:
         # Reset Boat Selector Default Option
         self.boat_selector_blue.select("Speed Boat")
         self.boat_selector_red.select("Speed Boat")
+        # Reset Eco unlock Timer
+        self.eco_unlock_timer: Timer = Timer(self.teams.blue.eco_unlock_time, start=True)  # Eco unlock time same for all teams
+        # Reset Eco to lock
+        self.money_upgrade_blue.enabled = False
+        self.money_upgrade_red.enabled = False
         # Start the Game if said so
         if start:
             self.unpause()
@@ -224,6 +231,13 @@ class InGame:
             # Update Money
             self.update_money(dt)
 
+            # Set Eco to unlock once Timer finished
+            if self.eco_unlock_timer.update(dt):
+                self.teams.blue.eco_unlocked = True
+                self.teams.red.eco_unlocked = True
+                self.money_upgrade_blue.enabled = True
+                self.money_upgrade_red.enabled = True
+
             # Update cursors
             self.teams.blue.cursor.update(dt)
             self.teams.red.cursor.update(dt)
@@ -243,7 +257,8 @@ class InGame:
             blue_money_upgrade_bought = self.money_upgrade_blue.update(dt, custom_cursor=self.teams.blue.cursor,
                                            camera=self.renderer.main_camera)
             if blue_money_upgrade_bought and\
-                self.teams.blue.money >= self.teams.blue.money_increase_buy_price:  # Blue Bought an upgrade
+                self.teams.blue.money >= self.teams.blue.money_increase_buy_price and\
+                    self.teams.blue.eco_unlocked:  # Blue Bought an upgrade
                 # Take away the money
                 self.teams.blue.money -= self.teams.blue.money_increase_buy_price
                 # Increase Team's money/second
@@ -254,7 +269,8 @@ class InGame:
             red_money_upgrade_bought = self.money_upgrade_red.update(dt, custom_cursor=self.teams.red.cursor,
                                            camera=self.renderer.main_camera)
             if red_money_upgrade_bought and\
-                self.teams.red.money >= self.teams.red.money_increase_buy_price:  # Red Bought an upgrade
+                self.teams.red.money >= self.teams.red.money_increase_buy_price and\
+                    self.teams.red.eco_unlocked:  # Red Bought an upgrade
                 # Take away the money
                 self.teams.red.money -= self.teams.red.money_increase_buy_price
                 # Increase Team's money/second
@@ -587,7 +603,8 @@ class Team:
     money_base_increase_grow_amount: int = 2  # Base money increase amount per upgrade
     money_increase_buy_price: int = 60  # How much it costs to buy upgrade
     money_increase_buy_price_grow_amount: int = 35  # How much more expensive will upgrade cost
-    money_increase_unlock_time: float = 10.0  # How long until the upgrade option unlocks for buying (seconds)
+    eco_unlock_time: float = 30.0  # How long until the upgrade option unlocks for buying (seconds)
+    eco_unlocked: bool = False  # Is eco unlocked?
     boats: list[Boat] = field(default_factory=list)  # List containing all the Boats the team currently has
     island_health: int = 100  # Island health
 
