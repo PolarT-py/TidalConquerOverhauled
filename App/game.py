@@ -93,7 +93,8 @@ class Game:
         # Change certain settings and stuff depending on Platform
         for scene in self.scene_manager.scenes.values():
             for e in scene.elements:
-                if e.id == "fullscreen_toggle_button" and self.settings.main.platform == "Mobile":
+                if e.id == "fullscreen_toggle_button" and self.settings.main.platform == "Mobile" or\
+                        platform == "emscripten":  # Mobile or Web then Block access to fullscreen
                     e.enabled = False
 
         # Set Start Actions
@@ -210,7 +211,7 @@ class Game:
             if e.id == "debug_fps":
                 e.text.content = f" FPS: {round(self.clock.get_fps(), 1)} "
             if e.id == "debug_memory":
-                if self.settings.main.platform == "Desktop":
+                if self.settings.main.platform == "Desktop" and platform != "emscripten":  # No web
                     memory_bytes = self.process.memory_info().rss
                     memory_mb = memory_bytes / (1024 ** 2)
                     e.text.content = f" RAM Usage: {round(memory_mb, 2)} "

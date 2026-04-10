@@ -7,9 +7,8 @@ from App.input import InputManager
 from App.settings import Settings
 from World.background import Background
 from Entities.boats import Boat
-from Entities.classic_boats import CannonBoat
 from Entities.explosion import Explosion, BlueExplosion, RedExplosion
-from Entities.projectiles import CannonBall
+from Entities.projectiles import CannonBall, Trap
 from App.boat_loader import load_boats
 from App.ui import UIRadioButtonGroup, UIRadioButton, UILabel, UITextureButton
 from App.clock import Timer
@@ -43,8 +42,8 @@ class InGame:
         self.teams: Teams | None = None
         # Declare Objects (Explosions, Cannonballs, Mines, etc)
         self.explosions: list[Explosion] | None = None  # Explosions
-        self.cannonballs: list | None = None  # Cannonballs that have been orphaned
-        self.mines: list | None = None  # Mines that have been orphaned
+        self.cannonballs: list[CannonBall] | None = None  # Cannonballs that have been orphaned
+        self.traps: list[Trap] | None = None  # Traps that have been orphaned
         # Declare Constants
         self.TEAM_BOAT_EDGE_X: dict[str, int] = {  # Team Boat Spawn/Win X positions
             "blue": 200,
@@ -177,7 +176,7 @@ class InGame:
         # Set Objects (Explosions, Cannonballs, Mines, etc)
         self.explosions = []
         self.cannonballs: list[CannonBall] = []
-        self.mines = []
+        self.traps: list[Trap] = []
         # Reset Boat Selector Default Option
         self.boat_selector_blue.select("Speed Boat")
         self.boat_selector_red.select("Speed Boat")
@@ -347,17 +346,27 @@ class InGame:
                 cannonball.update(dt)
                 if cannonball.dead:
                     self.cannonballs.remove(cannonball)
+            # Loop through all Traps to update them
+            for trap in self.traps:
+                trap.update(dt)
+                if trap.dead:
+                    self.traps.remove(trap)
 
             # Loop through all boats to update them
             for boat in self.teams.red.boats + self.teams.blue.boats:
                 boat.update(dt, self.teams, self.TEAM_BOAT_EDGE_X, self.asset_manager, self.mixer)
-                if boat.__class__ == CannonBoat:
+                if "shooting" in boat.abilities:
                     shoot = boat.update_shooting(dt, self.asset_manager, self.mixer)
                     if shoot is not None:
                         self.cannonballs.append(shoot)
+                if "trapping" in boat.abilities:
+                    trap = boat.update_trapping(dt, self.asset_manager, self.mixer)
+                    if trap is not None:
+                        self.traps.append(trap)
 
             # Loop through all boats to clean them up
             for boat in self.teams.red.boats + self.teams.blue.boats:
+                # Cannonball Collision
                 for cannonball in self.cannonballs:  # See cannonball collision
                     if cannonball.rect.colliderect(boat.rect) and not cannonball.despawn:  # Cannonball hit
                         if cannonball.team != boat.team_name and\
@@ -367,10 +376,20 @@ class InGame:
                             boat.health -= cannonball.damage
                             if boat.health <= 0: boat.kill()
                             cannonball.kill()
+                # Trap Collision
+                for trap in self.traps:  # See trap collision
+                    if trap.rect.colliderect(boat.rect) and not trap.despawn and trap.landed:  # Trap hit
+                        if trap.team != boat.team_name and\
+                            trap.lane == boat.lane:  # Prevent friendly fire and only hit in the same lane
+                            self.explosions.append(Explosion(boat.position, self.asset_manager))
+                            self.explosions.append(Explosion(trap.position, self.asset_manager))
+                            self.mixer.play_sound("effects/break")
+                            boat.health -= trap.damage
+                            if boat.health <= 0: boat.kill()
+                            trap.kill()
                 if boat.dead:  # If dead
                     self.mixer.play_sound("effects/break")
-                    if boat.__class__ == CannonBoat:
-                        boat: CannonBoat = boat
+                    if "shooting" in boat.abilities:
                         for cannonball2 in boat.cannonballs:  #  Put cannonballs in an orphaned cannonballs group
                             self.cannonballs.append(cannonball2)
                     if boat.team_name == "blue":  # If Blue
@@ -418,9 +437,9 @@ class InGame:
                 self.lanes.three.color
             )
 
-        # Draw Boats and Cannonballs
+        # Draw Boats and Cannonballs and Traps
         for lane in (1, 2, 3):
-            for obj in self.teams.red.boats + self.teams.blue.boats + self.cannonballs:
+            for obj in self.traps + self.teams.red.boats + self.teams.blue.boats + self.cannonballs:
                 if obj.lane == lane:
                     obj.draw(self.renderer, debug_mode)
 
@@ -562,7 +581,7 @@ class PlayerCursor:
 class Team:
     name: str  # Name of the team (red/blue)
     cursor: PlayerCursor  # Colored Cursor
-    money: int = 80  # Starting money
+    money: int = 800  # Starting money
     money_cap: int = 1000  # Max money one could have
     money_base_increase: int = 10  # Money $ Per Second ($Money/s)
     money_base_increase_grow_amount: int = 2  # Base money increase amount per upgrade

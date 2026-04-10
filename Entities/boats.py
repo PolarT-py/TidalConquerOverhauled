@@ -14,7 +14,7 @@ class Boat:
     def __init__(self, team_name: str, position: Vector2, lane: int, asset_manager: AssetManager):
         # Main Data
         self.live_time: float = 0  # Time it's been alive. Used for bobbing effect
-        self.SWAY_AMPLIFIER: float = 2.0
+        self.SWAY_AMPLIFIER: float = 2.0  # How much the boats sway
         self.position: Vector2 = position  # Position (Centered)
         self.rect: Rect = Rect((*position, 100, 35))  # X Y Position, Width, Height
         self.rect_offset: Vector2 = Vector2(0, 25)  # Offset for rect (Applied in self.fix_other_positions)
@@ -26,7 +26,7 @@ class Boat:
             position=self.position,  # Sprite should always follow self.position
             position_mode="center",)  # Position Mode. Keep centered.
         self.team_name: str = team_name  # Boat's Team
-        self.opponent_team_name: str = self.get_opponent_team_name()
+        self.opponent_team_name: str = self.get_opponent_team_name()  # Opponent team
         self.health_max: int = 100  # Boat's Max Health
         self.health: int = self.health_max  # Boat's Health
         self.speed: int = 100  # Boat's Speed in px/s calculated by (speed*dt). Can be -/+ Depending on Team
@@ -34,6 +34,7 @@ class Boat:
         self.dead: bool = False  # If the boat is dead or not
         self.won: bool = False  # If the boat has captured the opponent's island (island_health<=0)
         self.damaged_island: bool = False  # If the boat damaged the island or not
+        self.abilities: list = []  # Special abilities the boat has
         self.fix_direction()  # Fix the Boat's direction immediately
         # Fix rect position to center immediately
         self.fix_other_positions()
