@@ -18,6 +18,14 @@ from App.in_game import InGame
 from os import environ
 from sys import platform
 
+
+# Quick Web check
+if platform == "emscripten":
+    import pygbag.aio as asyncio
+else:
+    import asyncio
+
+
 class Game:
     def __init__(self):
         # Load Settings
@@ -249,7 +257,7 @@ class Game:
         if self.debug_mode:
             self.debug_menu.draw_all()
 
-    def run(self):
+    async def run(self):
         while self.running:
             # Set delta time
             dt = self.clock.tick(self.renderer.fps) / 1000.0
@@ -268,6 +276,9 @@ class Game:
             # Check if stop run then quit
             if not self.running:
                 pg.quit()
+
+            # Update AsyncIO (For Web)
+            await asyncio.sleep(0)
 
         # Save settings and Quit game after loop stops
         save_settings(self.settings)

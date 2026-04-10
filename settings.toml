@@ -7,7 +7,7 @@ fps = 60
 vsync = false
 fullscreen = true
 debug = false
-first_time = true
+first_time = false
 platform = "Desktop"
 
 [audio]
