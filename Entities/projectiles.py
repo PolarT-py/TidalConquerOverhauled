@@ -22,8 +22,8 @@ class CannonBall:
         self.texture_sink: Texture2D = asset_manager.get("textures", "misc/cannonballsink")
         self.texture_sand: Texture2D = asset_manager.get("textures", "misc/cannonballsinksand")
         self.texture: Texture2D = asset_manager.get("textures", "misc/cannonball")
-        self.despawn_timer: Timer = Timer(10.0, start=False)
-        self.despawn_timer_animation: Timer = Timer(9.5, start=False)
+        self.despawn_timer: Timer = Timer(15.0, start=False)
+        self.despawn_timer_animation: Timer = Timer(14.5, start=False)
         self.despawn_animation_start: bool = False  # Can start despawn animation
         self.despawn_scale = Vector2(1.0, 1.0)  # For despawn animation in last 1 second
         self.despawn_speed = 2  # Adjust with despawn timer length

@@ -237,6 +237,7 @@ class InGame:
                 self.teams.red.eco_unlocked = True
                 self.money_upgrade_blue.enabled = True
                 self.money_upgrade_red.enabled = True
+                self.mixer.play_sound("effects/coin")
 
             # Update cursors
             self.teams.blue.cursor.update(dt)
