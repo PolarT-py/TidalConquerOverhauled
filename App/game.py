@@ -41,6 +41,7 @@ class Game:
             self.settings.main.platform = "Mobile"
         else:  # Desktop Platforms
             self.settings.main.platform = "Desktop"
+        # self.settings.main.platform = "Mobile"  # Dev Debug purposes
 
         # Get Game Process on Desktop
         if self.settings.main.platform == "Desktop":
@@ -105,6 +106,12 @@ class Game:
                 if e.id == "fullscreen_toggle_button" and self.settings.main.platform == "Mobile" or\
                         platform == "emscripten":  # Mobile or Web then Block access to fullscreen
                     e.enabled = False
+                elif e.id in ("blue_money", "red_money") and self.settings.main.platform == "Mobile":
+                    e.font.size = 64
+                    e.position.y = 670
+                elif e.id in ("blue_money_per_second", "red_money_per_second") and self.settings.main.platform == "Mobile":
+                    e.font.size = 24
+                    e.position.y = 650
 
         # Set Start Actions
         self.mixer.apply_settings(self.settings, self.scene_manager)

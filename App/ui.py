@@ -258,12 +258,14 @@ class UITextureButton(UIButton):
                  draw_background=False,
                  position_mode="topleft",
                  use_camera=False,
-                 enabled=True):
+                 enabled=True,
+                 scale=Vector2(1.0, 1.0)):
         super().__init__(rect, renderer, asset_manager, mixer, input_manager, enabled=enabled)
         self.texture: Texture2D | None = texture
         self.draw_background = draw_background
         self.position_mode = position_mode
         self.use_camera = use_camera
+        self.scale = scale
 
     def draw(self):
         if self.visible:
@@ -282,8 +284,8 @@ class UITextureButton(UIButton):
                 self.texture,
                 pos=center_pos,
                 rotation=0.0,
-                scale=Vector2(1.0, 1.0),
-                position_mode="center",
+                scale=self.scale,
+                position_mode="center"
             )
             # If: want to draw Rect Foreground (Debug/Hitbox Check)
             if self.draw_background or not self.enabled:
