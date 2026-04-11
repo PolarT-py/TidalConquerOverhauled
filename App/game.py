@@ -100,18 +100,7 @@ class Game:
             self.renderer, self.asset_manager, self.mixer, self.input_manager, self.settings)
 
         # Activate certain elements at Game Start
-        for scene in self.scene_manager.scenes.values():
-            for e in scene.elements:
-                # Change certain settings and stuff depending on Platform
-                if e.id == "fullscreen_toggle_button" and self.settings.main.platform == "Mobile" or\
-                        platform == "emscripten":  # Mobile or Web then Block access to fullscreen
-                    e.enabled = False
-                elif e.id in ("blue_money", "red_money") and self.settings.main.platform == "Mobile":
-                    e.font.size = 64
-                    e.position.y = 670
-                elif e.id in ("blue_money_per_second", "red_money_per_second") and self.settings.main.platform == "Mobile":
-                    e.font.size = 24
-                    e.position.y = 650
+        self.update_platform_specifics()
 
         # Set Start Actions
         self.mixer.apply_settings(self.settings, self.scene_manager)
@@ -294,6 +283,22 @@ class Game:
         if self.input_manager.was_key_pressed(pg.K_F3):
             self.debug_mode = not self.debug_mode
             self.ingame.debug_mode = self.debug_mode
+
+    def update_platform_specifics(self):
+        # Activate certain elements at Game Start
+        for scene in self.scene_manager.scenes.values():
+            for e in scene.elements:
+                # Change certain settings and stuff depending on Platform
+                if e.id == "fullscreen_toggle_button" and self.settings.main.platform == "Mobile" or \
+                        platform == "emscripten":  # Mobile or Web then Block access to fullscreen
+                    e.enabled = False
+                elif e.id in ("blue_money", "red_money") and self.settings.main.platform == "Mobile":
+                    e.font.size = 64
+                    e.position.y = 670
+                elif e.id in ("blue_money_per_second",
+                              "red_money_per_second") and self.settings.main.platform == "Mobile":
+                    e.font.size = 24
+                    e.position.y = 650
 
     def update(self, dt: float):
         # Update InGame
