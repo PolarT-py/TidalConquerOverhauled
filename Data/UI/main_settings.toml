@@ -108,6 +108,95 @@ position_mode = "center"
 use_camera = true
 
 
+# Master Volume Display
+[[elements]]
+id = "master_volume"
+type = "label"
+position = [-640, 585]
+text = "       Master Volume: 100%       "
+text_size = 38
+text_font = "PirataOne"
+text_color = [255, 255, 255, 255]
+draw_background = true
+visible = true
+enabled = true
+position_mode = "center"
+use_camera = true
+
+# Master Volume Up Button
+[[elements]]
+id = "master_volume_up"
+type = "button"
+rect = [-415, 585, 50, 50]
+text = "+"
+text_size = 38
+text_font = "PirataOne"
+text_color = [255, 255, 255, 255]
+visible = true
+enabled = true
+position_mode = "center"
+use_camera = true
+
+
+# Master Volume Down Button
+[[elements]]
+id = "master_volume_down"
+type = "button"
+rect = [-865, 585, 50, 50]
+text = "-"
+text_size = 38
+text_font = "PirataOne"
+text_color = [255, 255, 255, 255]
+visible = true
+enabled = true
+position_mode = "center"
+use_camera = true
+
+
+# Music Volume Display
+[[elements]]
+id = "music_volume"
+type = "label"
+position = [-640, 645]
+text = "        Music Volume: 100%        "
+text_size = 38
+text_font = "PirataOne"
+text_color = [255, 255, 255, 255]
+draw_background = true
+visible = true
+enabled = true
+position_mode = "center"
+use_camera = true
+
+# Music Volume Up Button
+[[elements]]
+id = "music_volume_up"
+type = "button"
+rect = [-415, 645, 50, 50]
+text = "+"
+text_size = 38
+text_font = "PirataOne"
+text_color = [255, 255, 255, 255]
+visible = true
+enabled = true
+position_mode = "center"
+use_camera = true
+
+
+# Music Volume Down Button
+[[elements]]
+id = "music_volume_down"
+type = "button"
+rect = [-865, 645, 50, 50]
+text = "-"
+text_size = 38
+text_font = "PirataOne"
+text_color = [255, 255, 255, 255]
+visible = true
+enabled = true
+position_mode = "center"
+use_camera = true
+
 
 
 # Other Stuff

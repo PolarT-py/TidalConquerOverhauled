@@ -108,6 +108,13 @@ class SceneManager:
                 return e
         return None
 
+    def get_from_all(self, element_id: str):
+        for scene in self.scenes.values():
+            for e in scene.elements:
+                if e.id == element_id:
+                    return e
+        return None
+
 
 class UIButton(UIElement):
     def __init__(self,

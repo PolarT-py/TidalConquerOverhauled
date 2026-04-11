@@ -98,14 +98,16 @@ class Game:
         self.ingame = InGame(
             self.renderer, self.asset_manager, self.mixer, self.input_manager, self.settings)
 
-        # Change certain settings and stuff depending on Platform
+        # Activate certain elements at Game Start
         for scene in self.scene_manager.scenes.values():
             for e in scene.elements:
+                # Change certain settings and stuff depending on Platform
                 if e.id == "fullscreen_toggle_button" and self.settings.main.platform == "Mobile" or\
                         platform == "emscripten":  # Mobile or Web then Block access to fullscreen
                     e.enabled = False
 
         # Set Start Actions
+        self.mixer.apply_settings(self.settings, self.scene_manager)
         self.mixer.play_music("music/Thatched Villagers")
 
     def handle_events(self):
@@ -167,6 +169,62 @@ class Game:
                 self.settings.main.fps = new_fps
                 self.scene_manager.get("fps_change_button").text.content =\
                     f"FPS:                    {new_fps}"
+            elif e.id == "master_volume_up":
+                volume = self.settings.audio.master + 0.1
+                volume = min(volume, 1.0)
+                self.settings.audio.master = round(volume, 2)
+                self.mixer.change_volume(0.1)
+                # Convert to percentage
+                percent = int(self.settings.audio.master * 100)
+                if percent == 100:
+                    text = f"       Master Volume: {percent}%       "
+                elif percent < 10:
+                    text = f"         Master Volume: {percent}%         "
+                else:
+                    text = f"        Master Volume: {percent}%        "
+                self.scene_manager.get("master_volume").text.content = text
+            elif e.id == "master_volume_down":
+                volume = self.settings.audio.master - 0.1
+                volume = max(volume, 0.0)
+                self.settings.audio.master = round(volume, 2)
+                self.mixer.change_volume(-0.1)
+                # Convert to percentage
+                percent = int(self.settings.audio.master * 100)
+                if percent == 100:
+                    text = f"       Master Volume: {percent}%       "
+                elif percent < 10:
+                    text = f"         Master Volume: {percent}%         "
+                else:
+                    text = f"        Master Volume: {percent}%        "
+                self.scene_manager.get("master_volume").text.content = text
+            elif e.id == "music_volume_up":
+                volume = self.settings.audio.music + 0.1
+                volume = min(volume, 1.0)
+                self.settings.audio.music = round(volume, 2)
+                self.mixer.change_music_volume(0.1)
+                # Convert to percentage
+                percent = int(self.settings.audio.music * 100)
+                if percent == 100:
+                    text = f"        Music Volume: {percent}%        "
+                elif percent < 10:
+                    text = f"          Music Volume: {percent}%          "
+                else:
+                    text = f"         Music Volume: {percent}%         "
+                self.scene_manager.get("music_volume").text.content = text
+            elif e.id == "music_volume_down":
+                volume = self.settings.audio.music - 0.1
+                volume = max(volume, 0.0)
+                self.settings.audio.music = round(volume, 2)
+                self.mixer.change_music_volume(-0.1)
+                # Convert to percentage
+                percent = int(self.settings.audio.music * 100)
+                if percent == 100:
+                    text = f"        Music Volume: {percent}%        "
+                elif percent < 10:
+                    text = f"          Music Volume: {percent}%          "
+                else:
+                    text = f"         Music Volume: {percent}%         "
+                self.scene_manager.get("music_volume").text.content = text
             elif e.id == "fullscreen_toggle_button":
                 self.renderer.toggle_fullscreen()
                 self.settings.main.fullscreen = not self.settings.main.fullscreen
