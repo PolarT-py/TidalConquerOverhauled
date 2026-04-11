@@ -72,6 +72,7 @@ def load_scenes(
                     text_font=font_path,
                     use_camera=e.get("use_camera", False),
                     position_mode=e.get("position_mode", "topleft"),
+                    enabled=e.get("enabled", True),
                 )
                 built_element.text.color = _parse_color(e.get("text_color"))
                 built_element.visible = e.get("visible", True)
@@ -91,6 +92,7 @@ def load_scenes(
                     draw_background=e.get("draw_background", False),
                     use_camera=e.get("use_camera", False),
                     position_mode=e.get("position_mode", "topleft"),
+                    enabled=e.get("enabled", True),
                 )
                 built_element.visible = e.get("visible", True)
                 built_element.enabled = e.get("enabled", True)

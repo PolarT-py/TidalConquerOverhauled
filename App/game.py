@@ -105,6 +105,8 @@ class Game:
         # Set Start Actions
         self.mixer.apply_settings(self.settings, self.scene_manager)
         self.mixer.play_music("music/Thatched Villagers")
+        for e in self.debug_menu.elements:  # Inverse enable state for it to work properly
+            e.enabled = False
 
     def handle_events(self):
         for event in pg.event.get():
@@ -260,14 +262,15 @@ class Game:
                 e.text.content = f"{self.ingame.teams.red.money_base_increase}c/s"
         # Update Debug Elements Interaction
         for e in self.debug_menu.update_all(dt):
-            if e.id == "debug_test_button_1":  # Anchor Camera to Main Menu (0, 0)
-                self.renderer.camera.move(Vector2(0, 0))
-            elif e.id == "debug_test_button_2":  # Anchor Camera to Game Area (0, -450)
-                self.renderer.camera.move(Vector2(0, -450))
-            elif e.id == "debug_test_button_3":  # Pause Game
-                self.ingame.pause()
-            elif e.id == "debug_test_button_4":  # UnPause Game
-                self.ingame.unpause()
+            if self.debug_mode:
+                if e.id == "debug_test_button_1":  # Anchor Camera to Main Menu (0, 0)
+                    self.renderer.camera.move(Vector2(0, 0))
+                elif e.id == "debug_test_button_2":  # Anchor Camera to Game Area (0, -450)
+                    self.renderer.camera.move(Vector2(0, -450))
+                elif e.id == "debug_test_button_3":  # Pause Game
+                    self.ingame.pause()
+                elif e.id == "debug_test_button_4":  # UnPause Game
+                    self.ingame.unpause()
         # Update Debug Elements every frame
         for e in self.debug_menu.elements:
             if e.id == "debug_fps":
@@ -283,6 +286,8 @@ class Game:
         if self.input_manager.was_key_pressed(pg.K_F3):
             self.debug_mode = not self.debug_mode
             self.ingame.debug_mode = self.debug_mode
+            for e in self.debug_menu.elements:
+                e.enabled = not e.enabled
 
     def update_platform_specifics(self):
         # Activate certain elements at Game Start

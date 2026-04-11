@@ -396,7 +396,7 @@ class UITexture(UIElement):
                  mixer: Mixer,
                  input_manager: InputManager,
                  position_mode="topleft",
-                 use_camera=False):
+                 use_camera=False,):
         super().__init__(renderer, asset_manager, mixer, input_manager)
         self.texture = texture
         self.position: Vector2 = position
