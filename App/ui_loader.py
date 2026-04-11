@@ -112,6 +112,7 @@ def load_scenes(
                     position_mode=e.get("position_mode", "topleft"),
                     use_camera=e.get("use_camera", False),
                     shadow=e.get("shadow", True),
+                    do_cache=e.get("do_cache", True),
                 )
                 built_element.text.color = _parse_color(e.get("text_color"))
                 built_element.visible = e.get("visible", True)

@@ -15,6 +15,7 @@ visible = true
 enabled = true
 position_mode = "topleft"
 use_camera = true
+do_cache = false
 
 [[elements]]
 id = "blue_money"

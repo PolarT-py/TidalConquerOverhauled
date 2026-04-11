@@ -7,6 +7,8 @@ from App.input import InputManager
 from App.settings import Settings
 from World.background import Background
 from Entities.boats import Boat
+from Entities.classic_boats import CannonBoat, TrapperBoat
+from Entities.tco_boats import ExplosiveBoat
 from Entities.explosion import Explosion, BlueExplosion, RedExplosion
 from Entities.projectiles import CannonBall, Trap
 from App.boat_loader import load_boats
@@ -411,10 +413,12 @@ class InGame:
             for boat in self.teams.red.boats + self.teams.blue.boats:
                 boat.update(dt, self.teams, self.TEAM_BOAT_EDGE_X, self.asset_manager, self.mixer)
                 if "shooting" in boat.abilities:
+                    boat: CannonBoat = boat
                     shoot = boat.update_shooting(dt, self.asset_manager, self.mixer)
                     if shoot is not None:
                         self.cannonballs.append(shoot)
                 if "trapping" in boat.abilities:
+                    boat: TrapperBoat = boat
                     trap = boat.update_trapping(dt, self.asset_manager, self.mixer)
                     if trap is not None:
                         self.traps.append(trap)
@@ -443,6 +447,37 @@ class InGame:
                             if boat.health <= 0: boat.kill()
                             trap.kill()
                 if boat.dead:  # If dead
+                    if "explosive" in boat.abilities:  # If it has the explosive ability
+                        boat: ExplosiveBoat = boat  # Set Class
+                        if boat.can_explode:
+                            # Summon Explosions in radius
+                            self.explosions.append(Explosion(boat.position + Vector2(80, 0), self.asset_manager, wait_time=0.05))
+                            self.explosions.append(Explosion(boat.position - Vector2(80, 0), self.asset_manager, wait_time=0.05))
+                            self.explosions.append(Explosion(boat.position + Vector2(200, 0), self.asset_manager, wait_time=0.15))
+                            self.explosions.append(Explosion(boat.position - Vector2(200, 0), self.asset_manager, wait_time=0.15))
+                            # Apply range damage to enemies in the same lane
+                            for opponent_boat in self.teams.blue.boats + self.teams.red.boats:  # In all boats
+                                if opponent_boat.team_name == boat.opponent_team_name:  # If enemy (Apply full damage)
+                                    if opponent_boat.lane == boat.lane:  # If same lane
+                                        distance = abs(opponent_boat.position.x - boat.position.x)
+                                        if distance <= boat.close_hurt_radius:
+                                            opponent_boat.health -= boat.close_damage
+                                        elif distance <= boat.near_hurt_radius:
+                                            opponent_boat.health -= boat.near_damage
+                                        elif distance <= boat.far_hurt_radius:
+                                            opponent_boat.health -= boat.far_damage
+                                        if opponent_boat.health <= 0: opponent_boat.kill()
+                                elif opponent_boat.team_name == boat.team_name:  # If Friendly (Apply halved damage) (Sorry bad variable naming lol)
+                                    if opponent_boat.lane == boat.lane:  # If same lane
+                                        distance = abs(opponent_boat.position.x - boat.position.x)
+                                        if distance <= boat.close_hurt_radius:
+                                            opponent_boat.health -= boat.close_damage / 2
+                                        elif distance <= boat.near_hurt_radius:
+                                            opponent_boat.health -= boat.near_damage / 2
+                                        elif distance <= boat.far_hurt_radius:
+                                            opponent_boat.health -= boat.far_damage / 2
+                                        if opponent_boat.health <= 0: opponent_boat.kill()
+                    # Play sound
                     self.mixer.play_sound("effects/break")
                     if "shooting" in boat.abilities:
                         for cannonball2 in boat.cannonballs:  #  Put cannonballs in an orphaned cannonballs group
@@ -636,11 +671,11 @@ class PlayerCursor:
 class Team:
     name: str  # Name of the team (red/blue)
     cursor: PlayerCursor  # Colored Cursor
-    money: int = 800  # Starting money
+    money: int = 80  # Starting money
     money_cap: int = 1000  # Max money one could have
     money_base_increase: int = 10  # Money $ Per Second ($Money/s)
     money_base_increase_grow_amount: int = 2  # Base money increase amount per upgrade
-    money_increase_buy_price: int = 60  # How much it costs to buy upgrade
+    money_increase_buy_price: int = 90  # How much it costs to buy upgrade
     money_increase_buy_price_grow_amount: int = 35  # How much more expensive will upgrade cost
     eco_unlock_time: float = 30.0  # How long until the upgrade option unlocks for buying (seconds)
     eco_unlocked: bool = False  # Is eco unlocked?

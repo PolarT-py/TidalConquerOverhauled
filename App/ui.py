@@ -306,7 +306,8 @@ class UILabel(UIElement):
                  draw_background=False,
                  position_mode="topleft",
                  use_camera=False,
-                 shadow=True):
+                 shadow=True,
+                 do_cache=True):
         super().__init__(renderer, asset_manager, mixer, input_manager)
         self.position: Vector2 = Vector2(position)
         self.rect = pg.Rect(self.position.x, self.position.y, 0, 0)
@@ -316,6 +317,7 @@ class UILabel(UIElement):
         self.position_mode = position_mode
         self.use_camera = use_camera
         self.shadow = shadow
+        self.do_cache = do_cache
 
     def update_rect(self, text_w, text_h):
         x, y = self.position.x, self.position.y
@@ -370,7 +372,8 @@ class UILabel(UIElement):
                         self.asset_manager,
                         self.position - Vector2(0, -2),
                         text_size_override=(text_w, text_h),
-                        position_mode=self.position_mode
+                        position_mode=self.position_mode,
+                        do_cache=self.do_cache,
                     )
                 # Draw Text
                 self.text.color = color
@@ -379,7 +382,8 @@ class UILabel(UIElement):
                     self.asset_manager,
                     self.position,
                     text_size_override=(text_w, text_h),
-                    position_mode=self.position_mode
+                    position_mode=self.position_mode,
+                    do_cache=self.do_cache,
                 )
 
 
