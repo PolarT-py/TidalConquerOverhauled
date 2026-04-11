@@ -137,6 +137,70 @@ class InGame:
         # New Game
         self.new(False)
 
+    def reset_platform_specifics(self):
+        # Desktop
+        if self.settings.main.platform == "Desktop":
+            self.money_upgrade_blue = UITextureButton(self.renderer, self.asset_manager,
+                                                      self.mixer, self.input_manager,
+                                                      (32, 1138, 50, 50),
+                                                      self.asset_manager.get("textures",
+                                                                             "buttons/money_upgrade_button"),
+                                                      use_camera=True, position_mode="center",
+                                                      enabled=False)
+            self.money_upgrade_red = UITextureButton(self.renderer, self.asset_manager,
+                                                     self.mixer, self.input_manager,
+                                                     (1248, 1138, 50, 50),
+                                                     self.asset_manager.get("textures",
+                                                                            "buttons/money_upgrade_button"),
+                                                     use_camera=True, position_mode="center",
+                                                     enabled=False)
+            self.money_upgrade_blue_label = UILabel(Vector2(32, 1105), "$69",
+                                                    self.renderer, self.asset_manager,
+                                                    self.mixer, self.input_manager,
+                                                    use_camera=True, position_mode="center",
+                                                    text_font=self.asset_manager.get("fonts",
+                                                                                     "PirataOne"))
+            self.money_upgrade_red_label = UILabel(Vector2(1248, 1105), "$69",
+                                                   self.renderer, self.asset_manager,
+                                                   self.mixer, self.input_manager,
+                                                   use_camera=True, position_mode="center",
+                                                   text_font=self.asset_manager.get("fonts",
+                                                                                    "PirataOne"))
+        else:  # Mobile
+            self.money_upgrade_blue = UITextureButton(
+                self.renderer, self.asset_manager,
+                self.mixer, self.input_manager,
+                (32 + 20, 1138 - 13, 80, 80),
+                self.asset_manager.get("textures", "buttons/money_upgrade_button"),
+                use_camera=True, position_mode="center",
+                enabled=False, scale=Vector2(1.6, 1.6)
+            )
+
+            self.money_upgrade_red = UITextureButton(
+                self.renderer, self.asset_manager,
+                self.mixer, self.input_manager,
+                (1248 - 20, 1138 - 13, 80, 80),
+                self.asset_manager.get("textures", "buttons/money_upgrade_button"),
+                use_camera=True, position_mode="center",
+                enabled=False, scale=Vector2(1.6, 1.6)
+            )
+
+            self.money_upgrade_blue_label = UILabel(
+                Vector2(32 + 20, 1105 - 30), "$69",
+                self.renderer, self.asset_manager,
+                self.mixer, self.input_manager,
+                use_camera=True, position_mode="center", text_size=48,
+                text_font=self.asset_manager.get("fonts", "PirataOne")
+            )
+
+            self.money_upgrade_red_label = UILabel(
+                Vector2(1248 - 20, 1105 - 30), "$69",
+                self.renderer, self.asset_manager,
+                self.mixer, self.input_manager,
+                use_camera=True, position_mode="center", text_size=48,
+                text_font=self.asset_manager.get("fonts", "PirataOne")
+            )
+
     def setup_boat_selection_ui(self):
         i = 0
         boat_classes = sorted(  # Sorted by cost

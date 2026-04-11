@@ -198,6 +198,21 @@ position_mode = "center"
 use_camera = true
 
 
+# Toggle Desktop/Mobile platform Button
+[[elements]]
+id = "toggle_platform"
+type = "button"
+rect = [-1260, 650, 250, 50]
+text = " Platform: Nothing Mode "
+text_size = 28
+text_font = "PirataOne"
+text_color = [255, 255, 255, 255]
+visible = true
+enabled = true
+position_mode = "topleft"
+use_camera = true
+
+
 
 # Other Stuff
 [[elements]]

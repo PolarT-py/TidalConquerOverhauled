@@ -41,10 +41,9 @@ class Game:
             self.settings.main.platform = "Mobile"
         else:  # Desktop Platforms
             self.settings.main.platform = "Desktop"
-        # self.settings.main.platform = "Mobile"  # Dev Debug purposes
 
-        # Get Game Process on Desktop
-        if self.settings.main.platform == "Desktop":
+        # Get Game Process on Desktop, no web
+        if self.settings.main.platform == "Desktop" and platform != "emscripten":
             from psutil import Process
             self.process = Process(getpid())
         else:
@@ -105,8 +104,6 @@ class Game:
         # Set Start Actions
         self.mixer.apply_settings(self.settings, self.scene_manager)
         self.mixer.play_music("music/Thatched Villagers")
-        for e in self.debug_menu.elements:  # Inverse enable state for it to work properly
-            e.enabled = False
 
     def handle_events(self):
         for event in pg.event.get():
@@ -231,6 +228,14 @@ class Game:
                 else:  # Windowed
                     e.text.content = f"Display Mode: Windowed"
                     self.settings.main.window_size = self.renderer.window.size  # Reset settings window size
+            # Change platform button
+            elif e.id == "toggle_platform":
+                self.settings.main.platform = (
+                    "Desktop" if self.settings.main.platform == "Mobile" else "Mobile"
+                )
+                e.text.content = f" Platform: {self.settings.main.platform} Mode "
+                self.update_platform_specifics()
+                self.ingame.reset_platform_specifics()
             # In Game Page
             elif e.id == "back_button_in_game":
                 self.scene_manager.set_scene("main_menu", self.mixer)
@@ -287,7 +292,7 @@ class Game:
             self.debug_mode = not self.debug_mode
             self.ingame.debug_mode = self.debug_mode
             for e in self.debug_menu.elements:
-                e.enabled = not e.enabled
+                e.enabled = self.debug_mode
 
     def update_platform_specifics(self):
         # Activate certain elements at Game Start
@@ -296,17 +301,27 @@ class Game:
                 # Update platform
                 if e.id == "debug_platform":
                     e.text.content = f" Platform: {platform.capitalize()} "
+                if e.id == "toggle_platform":
+                    e.text.content = f" Platform: {self.settings.main.platform} Mode "
                 # Change certain settings and stuff depending on Platform
                 if e.id == "fullscreen_toggle_button" and self.settings.main.platform == "Mobile" or \
                         platform == "emscripten":  # Mobile or Web then Block access to fullscreen
                     e.enabled = False
-                elif e.id in ("blue_money", "red_money") and self.settings.main.platform == "Mobile":
+                else:
+                    e.enabled = True
+                if e.id in ("blue_money", "red_money") and self.settings.main.platform == "Mobile":
                     e.font.size = 64
                     e.position.y = 670
-                elif e.id in ("blue_money_per_second",
+                elif e.id in ("blue_money", "red_money") and self.settings.main.platform == "Desktop":
+                    e.font.size = 32
+                    e.position.y = 700
+                if e.id in ("blue_money_per_second",
                               "red_money_per_second") and self.settings.main.platform == "Mobile":
                     e.font.size = 24
                     e.position.y = 650
+                elif e.id in ("blue_money_per_second", "red_money_per_second") and self.settings.main.platform == "Desktop":
+                    e.font.size = 18
+                    e.position.y = 680
 
     def update(self, dt: float):
         # Update InGame
@@ -361,3 +376,4 @@ class Game:
         # Save settings and Quit game after loop stops
         save_settings(self.settings)
         pg.quit()
+# Fix Text for platform change button not being updated on game start
