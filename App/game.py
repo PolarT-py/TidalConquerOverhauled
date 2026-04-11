@@ -376,4 +376,3 @@ class Game:
         # Save settings and Quit game after loop stops
         save_settings(self.settings)
         pg.quit()
-# Fix Text for platform change button not being updated on game start
