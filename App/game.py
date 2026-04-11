@@ -288,6 +288,9 @@ class Game:
         # Activate certain elements at Game Start
         for scene in self.scene_manager.scenes.values():
             for e in scene.elements:
+                # Update platform
+                if e.id == "debug_platform":
+                    e.text.content = f" Platform: {platform.capitalize()} "
                 # Change certain settings and stuff depending on Platform
                 if e.id == "fullscreen_toggle_button" and self.settings.main.platform == "Mobile" or \
                         platform == "emscripten":  # Mobile or Web then Block access to fullscreen

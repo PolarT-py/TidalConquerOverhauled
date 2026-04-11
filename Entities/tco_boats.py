@@ -24,6 +24,8 @@ class ExplosiveBoat(Boat):
             position=self.position,  # Sprite should always follow self.position
             position_mode="center",  # Position Mode. Keep centered.
             scale=Vector2(0.32, 0.32))  # Rescale of the sprite
+        self.lock_sprite = Sprite2D(asset_manager.get("textures", "misc/lock"), position_mode="center")
+        self.lock_sprite.position = self.position + Vector2(0, -55)
         self.health_max: int = 50  # Boat's Max Health
         self.health: int = self.health_max  # Boat's Health
         self.speed: int = 50  # Boat's Speed in px/s calculated by (speed*dt). Can be -/+ Depending on Team
@@ -44,8 +46,13 @@ class ExplosiveBoat(Boat):
         self.update_basic(dt, teams, team_edges)
         if self.arm_timer.update(dt):  # Ready to explode
             self.can_explode = True
+        # Update Lock Position
+        self.lock_sprite.position = self.position + Vector2(0, -55)
 
     def draw_others(self, renderer, debug_mode=False):
+        # Draw Lock if currently arming
+        if not self.can_explode:
+            renderer.draw_sprite(self.lock_sprite)
         # Draw explosion radius in debug mode
         if debug_mode:
             # Calculate Rects

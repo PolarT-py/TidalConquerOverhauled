@@ -12,6 +12,7 @@ class Boat:
     cost = 10  # Cost to buy the boat
     texture_id = "boats/boat1_"  # ID for getting the texture for boat. After the _ is team name.
     scale = Vector2(1.0, 1.0)  # Scale of the boat
+    show = True  # Show by default in the boat list
     def __init__(self, team_name: str, position: Vector2, lane: int, asset_manager: AssetManager):
         # Main Data
         self.live_time: float = 0  # Time it's been alive. Used for bobbing effect
