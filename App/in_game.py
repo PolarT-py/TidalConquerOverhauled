@@ -166,6 +166,7 @@ class InGame:
                                                 self.mixer,
                                                 self.input_manager,
                                             ),
+                                            scale=boat_class.scale,
                                             position_mode="center",
                                             use_camera=True,
                                         )
@@ -190,6 +191,7 @@ class InGame:
                                                 self.mixer,
                                                 self.input_manager,
                                             ),
+                                            scale=boat_class.scale,
                                             position_mode="center",
                                             use_camera=True,
                                         )
@@ -634,7 +636,7 @@ class PlayerCursor:
 class Team:
     name: str  # Name of the team (red/blue)
     cursor: PlayerCursor  # Colored Cursor
-    money: int = 80  # Starting money
+    money: int = 800  # Starting money
     money_cap: int = 1000  # Max money one could have
     money_base_increase: int = 10  # Money $ Per Second ($Money/s)
     money_base_increase_grow_amount: int = 2  # Base money increase amount per upgrade

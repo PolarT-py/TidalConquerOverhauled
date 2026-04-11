@@ -104,7 +104,7 @@ class TrapperBoat(Boat):
     # External Data
     name = "Trapper Boat"  # Name
     id = "TrapperBoat"  # ID
-    cost = 100  # Cost to buy the boat
+    cost = 140  # Cost to buy the boat
     texture_id = "boats/boat4_"  # ID for getting the texture for boat. After the _ is team name.
     def __init__(self, team_name: str, position: Vector2, lane: int, asset_manager: AssetManager):
         super().__init__(team_name, position, lane, asset_manager)
@@ -125,7 +125,7 @@ class TrapperBoat(Boat):
         self.fix_direction()  # Fix the Boat's direction immediately
         self.abilities: list = ["trapping"]  # Special abilities the boat has
         # Some fun exclusive stuff
-        self.trap_timer: Timer = Timer(2.5, start=True, repeat=True)  # Shoot every 2.5 seconds
+        self.trap_timer: Timer = Timer(3.5, start=True, repeat=True)  # Shoot every 2.5 seconds
         self.trap_timer.time_left = 3.0  # Wait then trap when spawn
         self.trap_position_offset: Vector2 = Vector2(-50 if self.team_name == "blue" else 50,
                                                       15)  # Offset to a more preferred position

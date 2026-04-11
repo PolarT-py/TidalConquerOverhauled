@@ -466,6 +466,7 @@ class UIRadioButton(UITextureButton):  # Radio button, but specifically for boat
                  texture,
                  icon,
                  label,
+                 scale=Vector2(1.0, 1.0),
                  draw_background=False,
                  position_mode="topleft",
                  use_camera=False):
@@ -482,6 +483,7 @@ class UIRadioButton(UITextureButton):  # Radio button, but specifically for boat
         self.label.text.font = self.label.font
         self.label.use_camera = True
         self.selected = False
+        self.scale = scale
 
     def update_others(self, dt):
         self.label.update(dt)
@@ -510,11 +512,13 @@ class UIRadioButton(UITextureButton):  # Radio button, but specifically for boat
                 position_mode="center",
             )
             # Draw Icon Texture in the Center
+            base_scale = Vector2(0.27, 0.27) if self.selected else Vector2(0.25, 0.25)
+            scale = base_scale * self.scale  # Bigger if selected
             self.renderer.draw_texture(
                 self.icon,
                 pos=center_pos,
                 rotation=0.0,
-                scale=Vector2(0.52, 0.52) if self.selected else Vector2(0.5, 0.5),  # Bigger if selected
+                scale=scale,
                 position_mode="center",
             )
             # Draw money label
