@@ -111,6 +111,10 @@ class Trap:
         self.lane = lane  # Which lane its on
         self.despawn_scale = Vector2(1.0, 1.0)  # Despawn Scaling Animation
         self.landed = False  # Has it landed in water yet?
+        self.bob_time = 0.0  # Counter for bob time
+        self.bob_amplitude = 30.0  # How much it bobs
+        self.bob_speed = 3.0  # How fast it bobs
+        self.bob_y = 0  # How much to add to position
         self.mixer = mixer  # Cool mixer
 
     def fix_rect(self):
@@ -134,10 +138,13 @@ class Trap:
         if self.dead:
             return
         if not self.despawn:  # Is Alive
-            if not self.landed:
+            if not self.landed:  # In air
                 self.position.x += self.x_velocity * dt  # Apply horizontal velocity
                 self.position.y += self.y_velocity * dt  # Apply vertical velocity
                 self.y_velocity += self.gravity_accel * dt  # Apply gravity
+            else:  # In water
+                self.bob_time += dt if self.texture == self.texture_sink else 0  # Add bob time only if in water
+                self.bob_y = sin(self.bob_time * self.bob_speed) * self.bob_amplitude * dt
 
             if self.position.y >= self.stop_y:
                 self.position.y = self.stop_y
@@ -155,7 +162,7 @@ class Trap:
 
     def draw(self, renderer: Renderer, debug_mode):
         # Draw trap
-        renderer.draw_texture(self.texture, self.position, position_mode="center", scale=self.despawn_scale)
+        renderer.draw_texture(self.texture, self.position + Vector2(0, self.bob_y), position_mode="center", scale=self.despawn_scale)
         # Draw trap hitbox in debug mode
         if debug_mode:
             renderer.draw_rect(self.rect, (50, 50, 50, 100))
