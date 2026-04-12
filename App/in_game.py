@@ -16,6 +16,7 @@ from App.ui import UIRadioButtonGroup, UIRadioButton, UILabel, UITextureButton
 from App.clock import Timer
 from App.controllers import BlueController, RedController
 from App.debug import debug_print
+from App.bot_player import BotPlayer
 
 
 # The actual Gameplay part of the Game
@@ -36,6 +37,7 @@ class InGame:
         self.settings: Settings = settings
         self.background = Background(self.renderer, self.asset_manager)
         self.speed: float = 1.0
+        self.mode: str = ""  # pvp and bot and tutorial
         # Load Boats
         self.boat_registry: dict = load_boats()
         # Set States
@@ -44,6 +46,7 @@ class InGame:
         self.show_hidden_boats: bool = False  # Show Easter Egg boats
         # Declare Teams
         self.teams: Teams | None = None
+        self.bot: BotPlayer | None = None
         # Declare Objects (Explosions, Cannonballs, Mines, etc)
         self.explosions: list[Explosion] | None = None  # Explosions
         self.cannonballs: list[CannonBall] | None = None  # Cannonballs that have been orphaned
@@ -275,9 +278,18 @@ class InGame:
                 self.boat_selector_red[boat_class.name].id = boat_class.id
 
     # Start a new game
-    def new(self, start=True):
+    def new(self, start=True, mode="pvp"):
         # Cool Variables
         self.uptime = 0
+        if self.mode not in ("pvp", "bot"):  # Prevent unknown modes
+            self.mode = "pvp"
+        self.mode: str = mode  # pvp and bot and tutorial
+        if self.mode == "pvp":
+            self.bot = None
+        elif self.mode == "bot":
+            self.bot = BotPlayer(self)
+        else:  # Tutorial
+            self.bot = None
         # Set Teams
         self.teams = Teams(Team("blue", PlayerCursor("blue",
                                                      Vector2(200, 800),
@@ -288,7 +300,8 @@ class InGame:
                                                     Vector2(1080, 800),
                                                     RedController(self.input_manager),
                                                     self.BOAT_SELECTOR["boundary"],
-                                                    self.asset_manager)))
+                                                    self.asset_manager,
+                                                    True if mode == "pvp" else False)))
         # Set Objects (Explosions, Cannonballs, Mines, etc)
         self.explosions: list[Explosion] = []
         self.cannonballs: list[CannonBall] = []
@@ -334,6 +347,235 @@ class InGame:
         if self.teams.red.money > self.teams.red.money_cap:
             self.teams.red.money = self.teams.red.money_cap
 
+    def update_money_buttons(self, dt):
+        blue_money_upgrade_bought = self.money_upgrade_blue.update(dt, custom_cursor=self.teams.blue.cursor,
+                                                                   camera=self.renderer.main_camera)
+        if blue_money_upgrade_bought and \
+                self.teams.blue.money >= self.teams.blue.money_increase_buy_price and \
+                self.teams.blue.eco_unlocked:  # Blue Bought an upgrade
+            # Take away the money
+            self.teams.blue.money -= self.teams.blue.money_increase_buy_price
+            # Increase Team's money/second
+            self.teams.blue.money_base_increase += self.teams.blue.money_base_increase_grow_amount
+            # Make upgrade buy price higher
+            self.teams.blue.money_increase_buy_price += self.teams.blue.money_increase_buy_price_grow_amount
+            self.mixer.play_sound("effects/coin")
+        red_money_upgrade_bought = self.money_upgrade_red.update(dt, custom_cursor=self.teams.red.cursor,
+                                                                 camera=self.renderer.main_camera)
+        if red_money_upgrade_bought and \
+                self.teams.red.money >= self.teams.red.money_increase_buy_price and \
+                self.teams.red.eco_unlocked:  # Red Bought an upgrade
+            # Take away the money
+            self.teams.red.money -= self.teams.red.money_increase_buy_price
+            # Increase Team's money/second
+            self.teams.red.money_base_increase += self.teams.red.money_base_increase_grow_amount
+            # Make upgrade buy price higher
+            self.teams.red.money_increase_buy_price += self.teams.red.money_increase_buy_price_grow_amount
+            self.mixer.play_sound("effects/coin")
+        # Update the Upgrade Money Labels
+        self.money_upgrade_blue_label.text.content = f"${self.teams.blue.money_increase_buy_price}"
+        self.money_upgrade_blue_label.update(dt)
+        self.money_upgrade_red_label.text.content = f"${self.teams.red.money_increase_buy_price}"
+        self.money_upgrade_red_label.update(dt)
+
+    def update_boat_selectors(self, dt):
+        selected_blue = self.boat_selector_blue.update(dt, self.teams.blue.cursor,  # Blue
+                                                       self.renderer.main_camera)
+        if selected_blue:
+            self.teams.blue.cursor.selected_item = selected_blue.id
+
+        selected_red = self.boat_selector_red.update(dt, self.teams.red.cursor,  # Red
+                                                     self.renderer.main_camera,
+                                                     False if self.mode == "bot" else True)
+        if selected_red:
+            self.teams.red.cursor.selected_item = selected_red.id
+
+    def update_lanes_placement_check(self):
+        # Get mouse pos
+        virtual_mouse_pos = self.input_manager.mouse_pos_virtual
+        if virtual_mouse_pos is not None:
+            mouse_pos = virtual_mouse_pos - self.renderer.main_camera.offset
+        else:
+            mouse_pos = Vector2(-10000000000, -10000000000)
+
+        blue_cursor = self.teams.blue.cursor
+        blue_cursor_triggered = blue_cursor.status == "normal" and blue_cursor.has_hold()
+        blue_mouse_triggered = (
+                mouse_pos is not None
+                and self.input_manager.is_mouse_down(1)
+                and mouse_pos.x < 640 and blue_cursor.status == "normal"
+        )
+        # Check mouse and playerCursor triggers
+        if blue_cursor_triggered:
+            blue_pos = blue_cursor.position
+        elif blue_mouse_triggered:
+            blue_pos = mouse_pos
+        else:
+            blue_pos = None
+        # Check which Lane is clicked
+        if blue_pos is not None:
+            if self.lanes.one.rect.collidepoint(blue_pos):  # Blue Place Lane 1
+                if self.teams.blue.money >= self.boat_registry[blue_cursor.selected_item].cost:
+                    self.add_boat("blue", blue_cursor.selected_item, 1)
+                else:  # They aren't rich enough
+                    blue_cursor.poor()
+            elif self.lanes.two.rect.collidepoint(blue_pos):  # Blue Place Lane 2
+                if self.teams.blue.money >= self.boat_registry[blue_cursor.selected_item].cost:
+                    self.add_boat("blue", blue_cursor.selected_item, 2)
+                else:  # They aren't rich enough
+                    blue_cursor.poor()
+            elif self.lanes.three.rect.collidepoint(blue_pos):  # Blue Place Lane 3
+                if self.teams.blue.money >= self.boat_registry[blue_cursor.selected_item].cost:
+                    self.add_boat("blue", blue_cursor.selected_item, 3)
+                else:  # They aren't rich enough
+                    blue_cursor.poor()
+
+        red_cursor = self.teams.red.cursor
+        red_cursor_triggered = red_cursor.status == "normal" and red_cursor.has_hold()
+        red_mouse_triggered = (
+                mouse_pos is not None
+                and self.input_manager.is_mouse_down(1)
+                and mouse_pos.x >= 640 and red_cursor.status == "normal"
+        )
+        # Check mouse and playerCursor triggers
+        if red_cursor_triggered:
+            red_pos = red_cursor.position
+        elif red_mouse_triggered:
+            red_pos = mouse_pos
+        else:
+            red_pos = None
+        # If there's a bot, don't let player control
+        if self.mode == "bot":
+            red_pos = None
+        # Check which Lane is clicked
+        if red_pos is not None:
+            if self.lanes.one.rect.collidepoint(red_pos):  # Red Place Lane 1
+                if self.teams.red.money >= self.boat_registry[red_cursor.selected_item].cost:
+                    self.add_boat("red", red_cursor.selected_item, 1)
+                else:  # They aren't rich enough
+                    red_cursor.poor()
+            elif self.lanes.two.rect.collidepoint(red_pos):  # Red Place Lane 2
+                if self.teams.red.money >= self.boat_registry[red_cursor.selected_item].cost:
+                    self.add_boat("red", red_cursor.selected_item, 2)
+                else:  # They aren't rich enough
+                    red_cursor.poor()
+            elif self.lanes.three.rect.collidepoint(red_pos):  # Red Place Lane 3
+                if self.teams.red.money >= self.boat_registry[red_cursor.selected_item].cost:
+                    self.add_boat("red", red_cursor.selected_item, 3)
+                else:  # They aren't rich enough
+                    red_cursor.poor()
+
+    def update_projectiles(self, dt):
+        # Loop through all Cannonballs to update them
+        for cannonball in self.cannonballs:
+            cannonball.update(dt)
+            if cannonball.dead:
+                self.cannonballs.remove(cannonball)
+        # Loop through all Traps to update them
+        for trap in self.traps:
+            trap.update(dt)
+            if trap.dead:
+                self.traps.remove(trap)
+
+    def update_boats(self, dt):
+        for boat in self.teams.red.boats + self.teams.blue.boats:
+            boat.update(dt, self.teams, self.TEAM_BOAT_EDGE_X, self.asset_manager, self.mixer)
+            if "shooting" in boat.abilities:
+                boat: CannonBoat = boat
+                shoot = boat.update_shooting(dt, self.asset_manager, self.mixer)
+                if shoot is not None:
+                    self.cannonballs.append(shoot)
+            if "trapping" in boat.abilities:
+                boat: TrapperBoat = boat
+                trap = boat.update_trapping(dt, self.asset_manager, self.mixer)
+                if trap is not None:
+                    self.traps.append(trap)
+
+    def clean_up_boats(self):
+        for boat in self.teams.red.boats + self.teams.blue.boats:
+            # Cannonball Collision
+            for cannonball in self.cannonballs:  # See cannonball collision
+                if cannonball.rect.colliderect(boat.rect) and not cannonball.despawn:  # Cannonball hit
+                    if cannonball.team != boat.team_name and \
+                            cannonball.lane == boat.lane:  # Prevent friendly fire and only hit in the same lane
+                        self.explosions.append(Explosion(boat.position, self.asset_manager))
+                        self.mixer.play_sound("effects/break")
+                        boat.health -= cannonball.damage
+                        if boat.health <= 0: boat.kill()
+                        cannonball.kill()
+            # Trap Collision
+            for trap in self.traps:  # See trap collision
+                if trap.rect.colliderect(boat.rect) and not trap.despawn and trap.landed:  # Trap hit
+                    if trap.team != boat.team_name and \
+                            trap.lane == boat.lane:  # Prevent friendly fire and only hit in the same lane
+                        self.explosions.append(Explosion(boat.position, self.asset_manager))
+                        self.explosions.append(Explosion(trap.position, self.asset_manager))
+                        self.mixer.play_sound("effects/break")
+                        boat.health -= trap.damage
+                        if boat.health <= 0: boat.kill()
+                        trap.kill()
+            if boat.dead:  # If dead
+                if "explosive" in boat.abilities:  # If it has the explosive ability
+                    boat: ExplosiveBoat = boat  # Set Class
+                    if boat.can_explode:
+                        # Summon Explosions in radius
+                        self.explosions.append(
+                            Explosion(boat.position + Vector2(80, 0), self.asset_manager, wait_time=0.05))
+                        self.explosions.append(
+                            Explosion(boat.position - Vector2(80, 0), self.asset_manager, wait_time=0.05))
+                        self.explosions.append(
+                            Explosion(boat.position + Vector2(200, 0), self.asset_manager, wait_time=0.15))
+                        self.explosions.append(
+                            Explosion(boat.position - Vector2(200, 0), self.asset_manager, wait_time=0.15))
+                        # Apply range damage to enemies in the same lane
+                        for opponent_boat in self.teams.blue.boats + self.teams.red.boats:  # In all boats
+                            if opponent_boat.team_name == boat.opponent_team_name:  # If enemy (Apply full damage)
+                                if opponent_boat.lane == boat.lane:  # If same lane
+                                    distance = abs(opponent_boat.position.x - boat.position.x)
+                                    if distance <= boat.close_hurt_radius:
+                                        opponent_boat.health -= boat.close_damage
+                                    elif distance <= boat.near_hurt_radius:
+                                        opponent_boat.health -= boat.near_damage
+                                    elif distance <= boat.far_hurt_radius:
+                                        opponent_boat.health -= boat.far_damage
+                                    if opponent_boat.health <= 0: opponent_boat.kill()
+                            elif opponent_boat.team_name == boat.team_name:  # If Friendly (Apply halved damage) (Sorry bad variable naming lol)
+                                if opponent_boat.lane == boat.lane:  # If same lane
+                                    distance = abs(opponent_boat.position.x - boat.position.x)
+                                    if distance <= boat.close_hurt_radius:
+                                        opponent_boat.health -= boat.close_damage / 2
+                                    elif distance <= boat.near_hurt_radius:
+                                        opponent_boat.health -= boat.near_damage / 2
+                                    elif distance <= boat.far_hurt_radius:
+                                        opponent_boat.health -= boat.far_damage / 2
+                                    if opponent_boat.health <= 0: opponent_boat.kill()
+                # Play sound
+                self.mixer.play_sound("effects/break")
+                if "shooting" in boat.abilities:
+                    for cannonball2 in boat.cannonballs:  # Put cannonballs in an orphaned cannonballs group
+                        self.cannonballs.append(cannonball2)
+                if boat.team_name == "blue":  # If Blue
+                    # Summon Explosion
+                    if boat.damaged_island:
+                        self.explosions.append(BlueExplosion(boat.position, self.asset_manager))
+                    else:
+                        self.explosions.append(Explosion(boat.position, self.asset_manager))
+                    self.teams.blue.boats.remove(boat)
+                elif boat.team_name == "red":  # If Red
+                    # Summon Explosion
+                    if boat.damaged_island:
+                        self.explosions.append(RedExplosion(boat.position, self.asset_manager))
+                    else:
+                        self.explosions.append(Explosion(boat.position, self.asset_manager))
+                    self.teams.red.boats.remove(boat)
+            if boat.won:  # Win
+                if boat.team_name == "blue":
+                    print(boat.team_name, "won!")
+                    self.running = False
+                elif boat.team_name == "red":
+                    print(boat.team_name, "won!")
+                    self.running = False
+
     def update(self, dt):
         # Update Background (Sky, Sea, Islands, Lanes animation)
         self.background.update(dt)
@@ -362,225 +604,22 @@ class InGame:
             self.teams.red.cursor.update(dt)
 
             # Update Boat Selectors
-            selected_blue = self.boat_selector_blue.update(dt, self.teams.blue.cursor, # Blue
-                                                           self.renderer.main_camera)
-            if selected_blue:
-                self.teams.blue.cursor.selected_item = selected_blue.id
-
-            selected_red = self.boat_selector_red.update(dt, self.teams.red.cursor,  # Red
-                                                         self.renderer.main_camera)
-            if selected_red:
-                self.teams.red.cursor.selected_item = selected_red.id
+            self.update_boat_selectors(dt)
 
             # Update Upgrade Money Buttons
-            blue_money_upgrade_bought = self.money_upgrade_blue.update(dt, custom_cursor=self.teams.blue.cursor,
-                                           camera=self.renderer.main_camera)
-            if blue_money_upgrade_bought and\
-                self.teams.blue.money >= self.teams.blue.money_increase_buy_price and\
-                    self.teams.blue.eco_unlocked:  # Blue Bought an upgrade
-                # Take away the money
-                self.teams.blue.money -= self.teams.blue.money_increase_buy_price
-                # Increase Team's money/second
-                self.teams.blue.money_base_increase += self.teams.blue.money_base_increase_grow_amount
-                # Make upgrade buy price higher
-                self.teams.blue.money_increase_buy_price += self.teams.blue.money_increase_buy_price_grow_amount
-                self.mixer.play_sound("effects/coin")
-            red_money_upgrade_bought = self.money_upgrade_red.update(dt, custom_cursor=self.teams.red.cursor,
-                                           camera=self.renderer.main_camera)
-            if red_money_upgrade_bought and\
-                self.teams.red.money >= self.teams.red.money_increase_buy_price and\
-                    self.teams.red.eco_unlocked:  # Red Bought an upgrade
-                # Take away the money
-                self.teams.red.money -= self.teams.red.money_increase_buy_price
-                # Increase Team's money/second
-                self.teams.red.money_base_increase += self.teams.red.money_base_increase_grow_amount
-                # Make upgrade buy price higher
-                self.teams.red.money_increase_buy_price += self.teams.red.money_increase_buy_price_grow_amount
-                self.mixer.play_sound("effects/coin")
-            # Update the Upgrade Money Labels
-            self.money_upgrade_blue_label.text.content = f"${self.teams.blue.money_increase_buy_price}"
-            self.money_upgrade_blue_label.update(dt)
-            self.money_upgrade_red_label.text.content = f"${self.teams.red.money_increase_buy_price}"
-            self.money_upgrade_red_label.update(dt)
+            self.update_money_buttons(dt)
 
             # Update Lanes placement Checks
+            self.update_lanes_placement_check()
 
-            # Get mouse pos
-            virtual_mouse_pos = self.input_manager.mouse_pos_virtual
-            if virtual_mouse_pos is not None:
-                mouse_pos = virtual_mouse_pos - self.renderer.main_camera.offset
-            else:
-                mouse_pos = Vector2(-10000000000, -10000000000)
-
-            blue_cursor = self.teams.blue.cursor
-            blue_cursor_triggered = blue_cursor.status == "normal" and blue_cursor.has_hold()
-            blue_mouse_triggered = (
-                    mouse_pos is not None
-                    and self.input_manager.is_mouse_down(1)
-                    and mouse_pos.x < 640 and blue_cursor.status == "normal"
-            )
-            # Check mouse and playerCursor triggers
-            if blue_cursor_triggered:
-                blue_pos = blue_cursor.position
-            elif blue_mouse_triggered:
-                blue_pos = mouse_pos
-            else:
-                blue_pos = None
-            # Check which Lane is clicked
-            if blue_pos is not None:
-                if self.lanes.one.rect.collidepoint(blue_pos):  # Blue Place Lane 1
-                    if self.teams.blue.money >= self.boat_registry[blue_cursor.selected_item].cost:
-                        self.add_boat("blue", blue_cursor.selected_item, 1)
-                    else:  # They aren't rich enough
-                        blue_cursor.poor()
-                elif self.lanes.two.rect.collidepoint(blue_pos):  # Blue Place Lane 2
-                    if self.teams.blue.money >= self.boat_registry[blue_cursor.selected_item].cost:
-                        self.add_boat("blue", blue_cursor.selected_item, 2)
-                    else:  # They aren't rich enough
-                        blue_cursor.poor()
-                elif self.lanes.three.rect.collidepoint(blue_pos):  # Blue Place Lane 3
-                    if self.teams.blue.money >= self.boat_registry[blue_cursor.selected_item].cost:
-                        self.add_boat("blue", blue_cursor.selected_item, 3)
-                    else:  # They aren't rich enough
-                        blue_cursor.poor()
-
-            red_cursor = self.teams.red.cursor
-            red_cursor_triggered = red_cursor.status == "normal" and red_cursor.has_hold()
-            red_mouse_triggered = (
-                    mouse_pos is not None
-                    and self.input_manager.is_mouse_down(1)
-                    and mouse_pos.x >= 640 and red_cursor.status == "normal"
-            )
-            # Check mouse and playerCursor triggers
-            if red_cursor_triggered:
-                red_pos = red_cursor.position
-            elif red_mouse_triggered:
-                red_pos = mouse_pos
-            else:
-                red_pos = None
-            # Check which Lane is clicked
-            if red_pos is not None:
-                if self.lanes.one.rect.collidepoint(red_pos):  # Red Place Lane 1
-                    if self.teams.red.money >= self.boat_registry[red_cursor.selected_item].cost:
-                        self.add_boat("red", red_cursor.selected_item, 1)
-                    else:  # They aren't rich enough
-                        red_cursor.poor()
-                elif self.lanes.two.rect.collidepoint(red_pos):  # Red Place Lane 2
-                    if self.teams.red.money >= self.boat_registry[red_cursor.selected_item].cost:
-                        self.add_boat("red", red_cursor.selected_item, 2)
-                    else:  # They aren't rich enough
-                        red_cursor.poor()
-                elif self.lanes.three.rect.collidepoint(red_pos):  # Red Place Lane 3
-                    if self.teams.red.money >= self.boat_registry[red_cursor.selected_item].cost:
-                        self.add_boat("red", red_cursor.selected_item, 3)
-                    else:  # They aren't rich enough
-                        red_cursor.poor()
-
-            # Loop through all Cannonballs to update them
-            for cannonball in self.cannonballs:
-                cannonball.update(dt)
-                if cannonball.dead:
-                    self.cannonballs.remove(cannonball)
-            # Loop through all Traps to update them
-            for trap in self.traps:
-                trap.update(dt)
-                if trap.dead:
-                    self.traps.remove(trap)
+            # Update projectiles
+            self.update_projectiles(dt)
 
             # Loop through all boats to update them
-            for boat in self.teams.red.boats + self.teams.blue.boats:
-                boat.update(dt, self.teams, self.TEAM_BOAT_EDGE_X, self.asset_manager, self.mixer)
-                if "shooting" in boat.abilities:
-                    boat: CannonBoat = boat
-                    shoot = boat.update_shooting(dt, self.asset_manager, self.mixer)
-                    if shoot is not None:
-                        self.cannonballs.append(shoot)
-                if "trapping" in boat.abilities:
-                    boat: TrapperBoat = boat
-                    trap = boat.update_trapping(dt, self.asset_manager, self.mixer)
-                    if trap is not None:
-                        self.traps.append(trap)
+            self.update_boats(dt)
 
             # Loop through all boats to clean them up
-            for boat in self.teams.red.boats + self.teams.blue.boats:
-                # Cannonball Collision
-                for cannonball in self.cannonballs:  # See cannonball collision
-                    if cannonball.rect.colliderect(boat.rect) and not cannonball.despawn:  # Cannonball hit
-                        if cannonball.team != boat.team_name and\
-                            cannonball.lane == boat.lane:  # Prevent friendly fire and only hit in the same lane
-                            self.explosions.append(Explosion(boat.position, self.asset_manager))
-                            self.mixer.play_sound("effects/break")
-                            boat.health -= cannonball.damage
-                            if boat.health <= 0: boat.kill()
-                            cannonball.kill()
-                # Trap Collision
-                for trap in self.traps:  # See trap collision
-                    if trap.rect.colliderect(boat.rect) and not trap.despawn and trap.landed:  # Trap hit
-                        if trap.team != boat.team_name and\
-                            trap.lane == boat.lane:  # Prevent friendly fire and only hit in the same lane
-                            self.explosions.append(Explosion(boat.position, self.asset_manager))
-                            self.explosions.append(Explosion(trap.position, self.asset_manager))
-                            self.mixer.play_sound("effects/break")
-                            boat.health -= trap.damage
-                            if boat.health <= 0: boat.kill()
-                            trap.kill()
-                if boat.dead:  # If dead
-                    if "explosive" in boat.abilities:  # If it has the explosive ability
-                        boat: ExplosiveBoat = boat  # Set Class
-                        if boat.can_explode:
-                            # Summon Explosions in radius
-                            self.explosions.append(Explosion(boat.position + Vector2(80, 0), self.asset_manager, wait_time=0.05))
-                            self.explosions.append(Explosion(boat.position - Vector2(80, 0), self.asset_manager, wait_time=0.05))
-                            self.explosions.append(Explosion(boat.position + Vector2(200, 0), self.asset_manager, wait_time=0.15))
-                            self.explosions.append(Explosion(boat.position - Vector2(200, 0), self.asset_manager, wait_time=0.15))
-                            # Apply range damage to enemies in the same lane
-                            for opponent_boat in self.teams.blue.boats + self.teams.red.boats:  # In all boats
-                                if opponent_boat.team_name == boat.opponent_team_name:  # If enemy (Apply full damage)
-                                    if opponent_boat.lane == boat.lane:  # If same lane
-                                        distance = abs(opponent_boat.position.x - boat.position.x)
-                                        if distance <= boat.close_hurt_radius:
-                                            opponent_boat.health -= boat.close_damage
-                                        elif distance <= boat.near_hurt_radius:
-                                            opponent_boat.health -= boat.near_damage
-                                        elif distance <= boat.far_hurt_radius:
-                                            opponent_boat.health -= boat.far_damage
-                                        if opponent_boat.health <= 0: opponent_boat.kill()
-                                elif opponent_boat.team_name == boat.team_name:  # If Friendly (Apply halved damage) (Sorry bad variable naming lol)
-                                    if opponent_boat.lane == boat.lane:  # If same lane
-                                        distance = abs(opponent_boat.position.x - boat.position.x)
-                                        if distance <= boat.close_hurt_radius:
-                                            opponent_boat.health -= boat.close_damage / 2
-                                        elif distance <= boat.near_hurt_radius:
-                                            opponent_boat.health -= boat.near_damage / 2
-                                        elif distance <= boat.far_hurt_radius:
-                                            opponent_boat.health -= boat.far_damage / 2
-                                        if opponent_boat.health <= 0: opponent_boat.kill()
-                    # Play sound
-                    self.mixer.play_sound("effects/break")
-                    if "shooting" in boat.abilities:
-                        for cannonball2 in boat.cannonballs:  #  Put cannonballs in an orphaned cannonballs group
-                            self.cannonballs.append(cannonball2)
-                    if boat.team_name == "blue":  # If Blue
-                        # Summon Explosion
-                        if boat.damaged_island:
-                            self.explosions.append(BlueExplosion(boat.position, self.asset_manager))
-                        else:
-                            self.explosions.append(Explosion(boat.position, self.asset_manager))
-                        self.teams.blue.boats.remove(boat)
-                    elif boat.team_name == "red":  # If Red
-                        # Summon Explosion
-                        if boat.damaged_island:
-                            self.explosions.append(RedExplosion(boat.position, self.asset_manager))
-                        else:
-                            self.explosions.append(Explosion(boat.position, self.asset_manager))
-                        self.teams.red.boats.remove(boat)
-                if boat.won:  # Win
-                    if boat.team_name == "blue":
-                        print(boat.team_name, "won!")
-                        self.running = False
-                    elif boat.team_name == "red":
-                        print(boat.team_name, "won!")
-                        self.running = False
+            self.clean_up_boats()
 
             # Loop through all explosions to update them
             for explosion in self.explosions:
@@ -655,7 +694,8 @@ class InGame:
 
 
 class PlayerCursor:
-    def __init__(self, team: str, position: Vector2, controller, boundary, asset_manager: AssetManager):
+    def __init__(self, team: str, position: Vector2, controller, boundary, asset_manager: AssetManager,
+                 allow_player_movement=True):
         self.team = team  # Set Team
         self.position: Vector2 = Vector2(position)
         # Set Textures
@@ -683,6 +723,7 @@ class PlayerCursor:
         # Set Constant
         self.SPEED = 350
         self.BOUNDARY: Rect = boundary
+        self.allow_player_movement = allow_player_movement
 
     def clear_statuses(self):
         self.loading_animation_timer = Timer(0.1, start=False, repeat=False)  # Set repeat when reset
@@ -720,8 +761,9 @@ class PlayerCursor:
             else:
                 self.texture = self.loading_animation[self.loading_animation_frame]  # Update Frame
         # Check Movement/Click input
-        movement = self.controller.get_movement()
-        self.position += movement * self.SPEED * dt  # Update position
+        if self.allow_player_movement:  # Only if it can allow player movement
+            movement = self.controller.get_movement()
+            self.position += movement * self.SPEED * dt  # Update position
         # Make sure the Cursor is in-bounds
         if self.position.x > self.BOUNDARY.w:
             self.position.x = self.BOUNDARY.w
@@ -733,7 +775,10 @@ class PlayerCursor:
             self.position.y = self.BOUNDARY.y
 
         # Detect NORMAL Click
-        current_click = self.controller.get_click()
+        if self.allow_player_movement:  # Only if it can allow player movement
+            current_click = self.controller.get_click()
+        else:
+            current_click = False
         self._just_clicked = current_click and not self._prev_click
         self._prev_click = current_click
 

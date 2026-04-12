@@ -125,6 +125,11 @@ class Game:
                 self.scene_manager.set_scene("in_game", self.mixer)
                 self.renderer.camera.move(Vector2(0, -450))
                 self.ingame.new()
+            elif e.id == "bot_button":
+                self.scene_manager.current_scene.get("resume_button").enabled = True  # Enable resume button
+                self.scene_manager.set_scene("in_game", self.mixer)
+                self.renderer.camera.move(Vector2(0, -450))
+                self.ingame.new(mode="bot")
             elif e.id == "exit_button":
                 self.running = False
             elif e.id == "resume_button":

@@ -448,11 +448,12 @@ class UIRadioButtonGroup:
         for k, btn in self.elements.items():  # Loop and Set matching key to be selected
             btn.selected = (k == key)
 
-    def update(self, dt, custom_cursor=None, camera=None) -> UIRadioButton | None:
-        for key, radio_button in self.elements.items():
-            if radio_button.update(dt, custom_cursor, camera):
-                self.select(key)
-                return radio_button  # Return activated button
+    def update(self, dt, custom_cursor=None, camera=None, do=True) -> UIRadioButton | None:
+        if do:
+            for key, radio_button in self.elements.items():
+                if radio_button.update(dt, custom_cursor, camera):
+                    self.select(key)
+                    return radio_button  # Return activated button
         return None
 
     def draw_all(self):

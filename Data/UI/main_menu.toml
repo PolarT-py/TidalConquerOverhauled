@@ -57,9 +57,19 @@ enabled = false  # Enables later after you start a game
 use_camera = true
 
 [[elements]]
+id = "bot_button"
+type = "texture_button"
+rect = [600, 550, 100, 50]
+texture = "buttons/botbutton"
+draw_background = false
+visible = true
+enabled = true
+use_camera = true
+
+[[elements]]
 id = "exit_button"
 type = "texture_button"
-rect = [700, 550, 100, 50]
+rect = [850, 550, 100, 50]
 texture = "buttons/exitbutton"
 draw_background = false
 visible = true
@@ -76,16 +86,6 @@ visible = true
 enabled = true
 use_camera = false
 
-[[elements]]
-id = "tutorial"
-type = "texture"
-texture = "misc/tutorial"
-position = [1000, 550]
-anchor = "center"
-visible = true
-enabled = true
-position_mode = "center"
-use_camera = true
 
 [[elements]]
 id = "polartblock"
