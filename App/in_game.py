@@ -35,11 +35,13 @@ class InGame:
         self.input_manager: InputManager = input_manager
         self.settings: Settings = settings
         self.background = Background(self.renderer, self.asset_manager)
+        self.speed: float = 1.0
         # Load Boats
         self.boat_registry: dict = load_boats()
         # Set States
         self.running: bool = False  # Is running
         self.debug_mode: bool = False  # Changed in game.py
+        self.show_hidden_boats: bool = False  # Show Easter Egg boats
         # Declare Teams
         self.teams: Teams | None = None
         # Declare Objects (Explosions, Cannonballs, Mines, etc)
@@ -207,62 +209,70 @@ class InGame:
             self.boat_registry.values(),
             key=lambda cls: cls.cost
         )
+        # Reset Boat Selectors
+        self.boat_selector_blue = UIRadioButtonGroup("Speed Boat", self.renderer)
+        self.boat_selector_red = UIRadioButtonGroup("Speed Boat", self.renderer)
+        # Reset currently selected
+        if self.teams is not None:
+            self.teams.blue.cursor.selected_item = "SpeedBoat"
+            self.teams.red.cursor.selected_item = "SpeedBoat"
         for boat_class in boat_classes:
             i += 1
             debug_print(f"Loaded: {boat_class}", self.debug_mode)
             debug_print(f"- {boat_class.name}", self.debug_mode)
             debug_print(f"- {boat_class.cost}", self.debug_mode)
             debug_print(f"- {boat_class.texture_id}", self.debug_mode)
-            self.boat_selector_blue.add(boat_class.name,
-                                        UIRadioButton(
-                                            self.renderer,
-                                            self.asset_manager,
-                                            self.mixer,
-                                            self.input_manager,
-                                            (
-                                                self.BOAT_SELECTOR["blue_start_x"] + i * self.BOAT_SELECTOR["button_space"],
-                                                1130, 64, 64),
-                                            None,
-                                            f"{boat_class.texture_id}BLUE",
-                                            UILabel(
-                                                Vector2(0, 0),  # Set inside init
-                                                f"${boat_class.cost}",
+            if boat_class.show or self.show_hidden_boats:
+                self.boat_selector_blue.add(boat_class.name,
+                                            UIRadioButton(
                                                 self.renderer,
                                                 self.asset_manager,
                                                 self.mixer,
                                                 self.input_manager,
-                                            ),
-                                            scale=boat_class.scale,
-                                            position_mode="center",
-                                            use_camera=True,
-                                        )
-            )
-            self.boat_selector_blue[boat_class.name].id = boat_class.id
-            self.boat_selector_red.add(boat_class.name,
-                                        UIRadioButton(
-                                            self.renderer,
-                                            self.asset_manager,
-                                            self.mixer,
-                                            self.input_manager,
-                                            (
-                                                self.BOAT_SELECTOR["red_start_x"] - i * self.BOAT_SELECTOR["button_space"],
-                                                1130, 64, 64),
-                                            None,
-                                            f"{boat_class.texture_id}RED",
-                                            UILabel(
-                                                Vector2(0, 0),  # Set inside init
-                                                f"${boat_class.cost}",
+                                                (
+                                                    self.BOAT_SELECTOR["blue_start_x"] + i * self.BOAT_SELECTOR["button_space"],
+                                                    1130, 64, 64),
+                                                None,
+                                                f"{boat_class.texture_id}BLUE",
+                                                UILabel(
+                                                    Vector2(0, 0),  # Set inside init
+                                                    f"${boat_class.cost}",
+                                                    self.renderer,
+                                                    self.asset_manager,
+                                                    self.mixer,
+                                                    self.input_manager,
+                                                ),
+                                                scale=boat_class.scale,
+                                                position_mode="center",
+                                                use_camera=True,
+                                            )
+                )
+                self.boat_selector_blue[boat_class.name].id = boat_class.id
+                self.boat_selector_red.add(boat_class.name,
+                                            UIRadioButton(
                                                 self.renderer,
                                                 self.asset_manager,
                                                 self.mixer,
                                                 self.input_manager,
-                                            ),
-                                            scale=boat_class.scale,
-                                            position_mode="center",
-                                            use_camera=True,
-                                        )
-            )
-            self.boat_selector_red[boat_class.name].id = boat_class.id
+                                                (
+                                                    self.BOAT_SELECTOR["red_start_x"] - i * self.BOAT_SELECTOR["button_space"],
+                                                    1130, 64, 64),
+                                                None,
+                                                f"{boat_class.texture_id}RED",
+                                                UILabel(
+                                                    Vector2(0, 0),  # Set inside init
+                                                    f"${boat_class.cost}",
+                                                    self.renderer,
+                                                    self.asset_manager,
+                                                    self.mixer,
+                                                    self.input_manager,
+                                                ),
+                                                scale=boat_class.scale,
+                                                position_mode="center",
+                                                use_camera=True,
+                                            )
+                )
+                self.boat_selector_red[boat_class.name].id = boat_class.id
 
     # Start a new game
     def new(self, start=True):
@@ -327,6 +337,9 @@ class InGame:
     def update(self, dt):
         # Update Background (Sky, Sea, Islands, Lanes animation)
         self.background.update(dt)
+
+        # Update DT's speed
+        dt = dt * self.speed
 
         # Update Game Objects
         if self.running:

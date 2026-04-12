@@ -278,6 +278,14 @@ class Game:
                     self.ingame.pause()
                 elif e.id == "debug_test_button_4":  # UnPause Game
                     self.ingame.unpause()
+                elif e.id == "debug_test_button_5":  # Toggle Gold Ship
+                    self.ingame.show_hidden_boats = not self.ingame.show_hidden_boats
+                    self.ingame.setup_boat_selection_ui()
+                elif e.id == "debug_test_button_6":  # Slo-mo toggle
+                    if self.ingame.speed == 1.0:
+                        self.ingame.speed = 0.5
+                    else:
+                        self.ingame.speed = 1.0
         if not self.debug_mode:
             for e in self.debug_menu.elements:  # Make unable to click debug elements when menu is hidden
                 e.enabled = False

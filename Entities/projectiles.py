@@ -166,3 +166,67 @@ class Trap:
         # Draw trap hitbox in debug mode
         if debug_mode:
             renderer.draw_rect(self.rect, (50, 50, 50, 100))
+
+
+class Carrot:
+    def __init__(self, position: Vector2, x_velocity: float, team: str, lane: int,
+                 asset_manager: AssetManager, mixer: Mixer):
+        self.position: Vector2 = Vector2(position)  # Set Position
+        self.x_velocity: float = x_velocity  # Horizontal movement speed
+        self.x_velocity = randint(int(self.x_velocity-15), int(self.x_velocity+15))  # Randomize x velocity a bit
+        self.team = team  # Which team it's from
+        self.gravity_accel: float = 200.0  # Downward acceleration in px/s^2
+        self.rect: Rect = Rect(*self.position, 15, 15)  # Set Rect
+        self.fix_rect()  # Fix Rectangle to center
+        self.texture: Texture2D = asset_manager.get("textures", "misc/carrot")
+        self.despawn_timer: Timer = Timer(1.0, start=False)
+        self.despawn_timer_animation: Timer = Timer(0.5, start=False)
+        self.despawn_animation_start: bool = False  # Can start despawn animation
+        self.despawn_scale = Vector2(1.0, 1.0)  # For despawn animation in last 1 second
+        self.despawn_speed = 2  # Adjust with despawn timer length
+        self.despawn = False  # To activate the Despawn Timer
+        self.dead = False  # To wait for cleanup
+        self.damage = 10  # Damage it does when hit
+        self.lane = lane  # Which lane its on
+        self.mixer = mixer  # Cool mixer
+        self.rotation = 0
+
+    def fix_rect(self):
+        self.rect.center = self.position
+
+    def kill(self):
+        self.despawn = True
+        self.dead = True
+
+    def do_despawn(self):
+        # Set despawn values and timers
+        self.despawn = True
+        self.despawn_timer.reset()
+        self.despawn_timer_animation.reset()
+
+    def update(self, dt):
+        if self.dead:
+            return
+        self.rotation += 360 * 5 * dt  # Spin 5 times in 1 second
+        if not self.despawn:  # Is Alive
+            self.position.x += self.x_velocity * dt  # Apply horizontal velocity
+
+            if self.position.x >= 1300 or self.position.x < -20:
+                self.do_despawn()
+            self.fix_rect()  # Fix rect to center position
+        else:
+            if self.despawn_timer_animation.update(dt):  # Can start doing despawn animation
+                self.despawn_animation_start = True
+            if self.despawn_timer.update(dt):  # When despawn time is over
+                self.dead = True
+            if self.despawn_animation_start:
+                self.position.y += 4 * dt  # Sink into ground animation
+                self.despawn_scale -= Vector2(self.despawn_speed * dt, self.despawn_speed * dt)  # Do despawn animation
+
+    def draw(self, renderer: Renderer, debug_mode):
+        # Draw cannonball
+        renderer.draw_texture(self.texture, self.position, position_mode="center",
+                              scale=self.despawn_scale, rotation=self.rotation)
+        # Draw cannonball hitbox in debug mode
+        if debug_mode:
+            renderer.draw_rect(self.rect, (50, 50, 50, 100))
