@@ -338,8 +338,6 @@ class InGame:
         # Update Background (Sky, Sea, Islands, Lanes animation)
         self.background.update(dt)
 
-        # Update DT's speed
-        dt = dt * self.speed
 
         # Update Game Objects
         if self.running:
@@ -347,6 +345,9 @@ class InGame:
             self.uptime += dt
             # Update Money
             self.update_money(dt)
+
+            # Update DT's speed
+            dt = dt * self.speed
 
             # Set Eco to unlock once Timer finished
             if self.eco_unlock_timer.update(dt):
