@@ -38,6 +38,7 @@ class InGame:
         self.background = Background(self.renderer, self.asset_manager)
         self.speed: float = 1.0
         self.mode: str = ""  # pvp and bot and tutorial
+        self.win_texture: Texture2D | None = None
         # Load Boats
         self.boat_registry: dict = load_boats()
         # Set States
@@ -281,6 +282,7 @@ class InGame:
     def new(self, start=True, mode="pvp"):
         # Cool Variables
         self.uptime = 0
+        self.win_texture = None
         if self.mode not in ("pvp", "bot"):  # Prevent unknown modes
             self.mode = "pvp"
         self.mode: str = mode  # pvp and bot and tutorial
@@ -336,6 +338,11 @@ class InGame:
     def unpause(self): self.running = True  # Unpauses the game
 
     def pause(self): self.running = False  # Pauses the game
+
+    def win(self, team):
+        self.running = False
+        debug_print(f'{team.capitalize()}, "won!"', self.debug_mode)
+        self.win_texture: Texture2D = self.asset_manager.get("textures", f"misc/{team}win")
 
     def update_money(self, dt):  # Update Money
         # Increase the money
@@ -569,12 +576,7 @@ class InGame:
                         self.explosions.append(Explosion(boat.position, self.asset_manager))
                     self.teams.red.boats.remove(boat)
             if boat.won:  # Win
-                if boat.team_name == "blue":
-                    print(boat.team_name, "won!")
-                    self.running = False
-                elif boat.team_name == "red":
-                    print(boat.team_name, "won!")
-                    self.running = False
+                self.win(boat.team_name)
 
     def update(self, dt):
         # Update Background (Sky, Sea, Islands, Lanes animation)
@@ -691,6 +693,10 @@ class InGame:
         if self.running:  # Only draw when In-Game
             self.teams.blue.cursor.draw(self.renderer)
             self.teams.red.cursor.draw(self.renderer)
+
+        # Draw win screen if someone won
+        if self.win_texture is not None:
+            self.renderer.draw_texture(self.win_texture, (640, 1000), position_mode="center")
 
 
 class PlayerCursor:

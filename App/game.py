@@ -136,6 +136,7 @@ class Game:
                 self.scene_manager.set_scene("in_game", self.mixer)
                 self.renderer.camera.move(Vector2(0, -450))
                 self.ingame.unpause()
+                self.ingame.win_texture = None
             elif e.id == "credits_button":
                 self.scene_manager.set_scene("credits", self.mixer)
                 self.renderer.camera.move(Vector2(-1280, 0))
