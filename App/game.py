@@ -104,6 +104,8 @@ class Game:
         # Set Start Actions
         self.mixer.apply_settings(self.settings, self.scene_manager)
         self.mixer.play_music("music/Thatched Villagers")
+        for e in self.debug_menu.elements:  # Make unable to click debug elements when menu is hidden
+            e.enabled = False
 
     def handle_events(self):
         for event in pg.event.get():
@@ -276,6 +278,9 @@ class Game:
                     self.ingame.pause()
                 elif e.id == "debug_test_button_4":  # UnPause Game
                     self.ingame.unpause()
+        if not self.debug_mode:
+            for e in self.debug_menu.elements:  # Make unable to click debug elements when menu is hidden
+                e.enabled = False
         # Update Debug Elements every frame
         for e in self.debug_menu.elements:
             if e.id == "debug_fps":
