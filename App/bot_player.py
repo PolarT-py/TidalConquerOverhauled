@@ -15,6 +15,7 @@ class BotPlayer:
         self.tick_timer: Timer = Timer(0.5, start=True, repeat=True)  # How often it updates
         self.secondary_lane = None  # Focus Lanes
         self.focus_lane = None  # Focus Lanes
+        self.sorted_lanes = []  # Lanes sorted by strength differences
 
     def has_attack_opportunity(self):
         # Check for open lane and if the enemy is poor
@@ -35,15 +36,15 @@ class BotPlayer:
 
     def choose_behavior(self):
         # Sort the lanes by threat level
-        sorted_lanes = list(enumerate(self.game.lanes, start=1))
-        sorted_lanes.sort(key=lambda item: item[1].threat, reverse=True)
+        self.sorted_lanes = list(enumerate(self.game.lanes, start=1))
+        self.sorted_lanes.sort(key=lambda item: item[1].threat, reverse=True)
 
         # Save lanes to focus on
-        self.focus_lane = sorted_lanes[0][0]
-        self.secondary_lane = sorted_lanes[1][0]
+        self.focus_lane = self.sorted_lanes[0][0]
+        self.secondary_lane = self.sorted_lanes[1][0]
 
-        highest = sorted_lanes[0][1]
-        second = sorted_lanes[1][1]
+        highest = self.sorted_lanes[0][1]
+        second = self.sorted_lanes[1][1]
 
         # Emergency = A Lane has a large threat or two lanes both are bad
         if highest.threat >= 8 or (highest.threat >= 6 and second.threat >= 6):
@@ -103,8 +104,9 @@ class BotPlayer:
     def do_defend(self):
         cursor = self.game_obj.teams.red.cursor
         selected_item = None
+        highest = self.sorted_lanes[0][1]  # Most dangerous lane
         if self.game.money >= 120:
-            selected_item = choice([
+            items = [
                 "ExplosiveBoat",
                 "SpeedBoat",
                 "SpeedBoat",
@@ -115,7 +117,10 @@ class BotPlayer:
                 "TankBoat",
                 "TankBoat",
                 "TankBoat",
-            ])
+            ]
+            if highest.enemy_amount > 5:  # If there are a lots of enemies, place Explosive Boats more often
+                items += ["ExplosiveBoat"] * 2
+            selected_item = choice(items)
         elif self.game.money >= 50:
             selected_item = choice([
                 "SpeedBoat",
