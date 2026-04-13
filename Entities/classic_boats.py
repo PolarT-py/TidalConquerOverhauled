@@ -12,6 +12,7 @@ class SpeedBoat(Boat):
     id = "SpeedBoat"  # ID
     cost = 20  # Cost to buy the boat
     texture_id = "boats/boat1_"  # ID for getting the texture for boat. After the _ is team name.
+    threat = 1  # Amount of threat the boat holds
     def __init__(self, team_name: str, position: Vector2, lane: int, asset_manager: AssetManager):
         super().__init__(team_name, position, lane, asset_manager)
         # Main Data
@@ -36,6 +37,7 @@ class TankBoat(Boat):
     id = "TankBoat"  # ID
     cost = 50  # Cost to buy the boat
     texture_id = "boats/boat2_"  # ID for getting the texture for boat. After the _ is team name.
+    threat = 3  # Amount of threat the boat holds
     def __init__(self, team_name: str, position: Vector2, lane: int, asset_manager: AssetManager):
         super().__init__(team_name, position, lane, asset_manager)
         # Main Data
@@ -61,6 +63,7 @@ class CannonBoat(Boat):
     id = "CannonBoat"  # ID
     cost = 80  # Cost to buy the boat
     texture_id = "boats/boat3_"  # ID for getting the texture for boat. After the _ is team name.
+    threat = 6  # Amount of threat the boat holds
     def __init__(self, team_name: str, position: Vector2, lane: int, asset_manager: AssetManager):
         super().__init__(team_name, position, lane, asset_manager)
         # Main Data
@@ -106,6 +109,7 @@ class TrapperBoat(Boat):
     id = "TrapperBoat"  # ID
     cost = 140  # Cost to buy the boat
     texture_id = "boats/boat4_"  # ID for getting the texture for boat. After the _ is team name.
+    threat = 4  # Amount of threat the boat holds
     def __init__(self, team_name: str, position: Vector2, lane: int, asset_manager: AssetManager):
         super().__init__(team_name, position, lane, asset_manager)
         # Main Data

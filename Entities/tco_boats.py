@@ -13,6 +13,7 @@ class ExplosiveBoat(Boat):
     cost = 120  # Cost to buy the boat
     texture_id = "boats/boat5_"  # ID for getting the texture for boat. After the _ is team name.
     scale = Vector2(0.32, 0.32)  # Scale of the boat
+    threat = 6  # Amount of threat the boat holds
     def __init__(self, team_name: str, position: Vector2, lane: int, asset_manager: AssetManager):
         super().__init__(team_name, position, lane, asset_manager)
         # Main Data
@@ -89,6 +90,7 @@ class GoldShip(Boat):  # EASTER EGG BOAT
     texture_id = "boats/goldship_"  # ID for getting the texture for boat. After the _ is team name.
     scale = Vector2(0.32, 0.32)  # Scale of the boat
     show = False
+    threat = 6  # Amount of threat the boat holds
     def __init__(self, team_name: str, position: Vector2, lane: int, asset_manager: AssetManager):
         super().__init__(team_name, position, lane, asset_manager)
         # Main Data

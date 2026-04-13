@@ -292,6 +292,7 @@ class InGame:
             self.bot = BotPlayer(self)
         else:  # Tutorial
             self.bot = None
+        # self.mode = "pvp"  # Bot Debug Purposes
         # Set Teams
         self.teams = Teams(Team("blue", PlayerCursor("blue",
                                                      Vector2(200, 800),
@@ -371,7 +372,23 @@ class InGame:
                                                                  camera=self.renderer.main_camera)
         if red_money_upgrade_bought and \
                 self.teams.red.money >= self.teams.red.money_increase_buy_price and \
-                self.teams.red.eco_unlocked:  # Red Bought an upgrade
+                self.teams.red.eco_unlocked and self.mode != "bot":  # Red Bought an upgrade
+            # Take away the money
+            self.teams.red.money -= self.teams.red.money_increase_buy_price
+            # Increase Team's money/second
+            self.teams.red.money_base_increase += self.teams.red.money_base_increase_grow_amount
+            # Make upgrade buy price higher
+            self.teams.red.money_increase_buy_price += self.teams.red.money_increase_buy_price_grow_amount
+            self.mixer.play_sound("effects/coin")
+        # Update the Upgrade Money Labels
+        self.money_upgrade_blue_label.text.content = f"${self.teams.blue.money_increase_buy_price}"
+        self.money_upgrade_blue_label.update(dt)
+        self.money_upgrade_red_label.text.content = f"${self.teams.red.money_increase_buy_price}"
+        self.money_upgrade_red_label.update(dt)
+
+    def bot_buy_eco(self, dt):
+        if self.teams.red.money >= self.teams.red.money_increase_buy_price and \
+                self.teams.red.eco_unlocked and self.mode == "bot":  # Red Bought an upgrade
             # Take away the money
             self.teams.red.money -= self.teams.red.money_increase_buy_price
             # Increase Team's money/second
@@ -582,7 +599,6 @@ class InGame:
         # Update Background (Sky, Sea, Islands, Lanes animation)
         self.background.update(dt)
 
-
         # Update Game Objects
         if self.running:
             # Update Uptime Time
@@ -604,6 +620,10 @@ class InGame:
             # Update cursors
             self.teams.blue.cursor.update(dt)
             self.teams.red.cursor.update(dt)
+
+            # Update bot if mode == "bot"
+            if self.mode == "bot":
+                self.bot.update(dt, debug_mode=self.debug_mode)
 
             # Update Boat Selectors
             self.update_boat_selectors(dt)
