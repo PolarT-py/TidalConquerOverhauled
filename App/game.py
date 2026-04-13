@@ -303,7 +303,7 @@ class Game:
                 if self.settings.main.platform == "Desktop" and platform != "emscripten":  # No web
                     memory_bytes = self.process.memory_info().rss
                     memory_mb = memory_bytes / (1024 ** 2)
-                    e.text.content = f" RAM Usage: {round(memory_mb, 2)} "
+                    e.text.content = f" RAM Usage: {round(memory_mb, 2)} MB "
                 else:
                     e.text.content = f" RAM Usage: Unavailable on Mobile "
         # Check if toggle Debug Mode

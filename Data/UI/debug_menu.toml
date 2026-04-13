@@ -99,6 +99,7 @@ visible = true
 enabled = true
 position_mode = "topleft"
 use_camera = false
+do_cache = false
 
 # Memory Usage
 [[elements]]
@@ -114,13 +115,14 @@ visible = true
 enabled = true
 position_mode = "topleft"
 use_camera = false
+do_cache = false
 
 # Game version
 [[elements]]
 id = "debug_version"
 type = "label"
 position = [5, 67]
-text = " Game Ver: 0.8.7.1 "
+text = " Game Ver: 0.8.7.2 "
 text_size = 24
 text_font = "PirataOne"
 text_color = [255, 255, 255, 255]
