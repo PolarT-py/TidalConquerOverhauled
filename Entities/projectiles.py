@@ -186,7 +186,7 @@ class Carrot:
         self.despawn_speed = 2  # Adjust with despawn timer length
         self.despawn = False  # To activate the Despawn Timer
         self.dead = False  # To wait for cleanup
-        self.damage = 10  # Damage it does when hit
+        self.damage = 25  # Damage it does when hit
         self.lane = lane  # Which lane its on
         self.mixer = mixer  # Cool mixer
         self.rotation = 0
