@@ -124,12 +124,12 @@ class Game:
                 self.scene_manager.current_scene.get("resume_button").enabled = True  # Enable resume button
                 self.scene_manager.set_scene("in_game", self.mixer)
                 self.renderer.camera.move(Vector2(0, -450))
-                self.ingame.new()
+                self.ingame.new(start=True, mode="pvp")
             elif e.id == "bot_button":
                 self.scene_manager.current_scene.get("resume_button").enabled = True  # Enable resume button
                 self.scene_manager.set_scene("in_game", self.mixer)
                 self.renderer.camera.move(Vector2(0, -450))
-                self.ingame.new(mode="bot")
+                self.ingame.new(start=True, mode="bot")
             elif e.id == "exit_button":
                 self.running = False
             elif e.id == "resume_button":
@@ -305,7 +305,7 @@ class Game:
                     memory_mb = memory_bytes / (1024 ** 2)
                     e.text.content = f" RAM Usage: {round(memory_mb, 2)} MB "
                 else:
-                    e.text.content = f" RAM Usage: Unavailable on Mobile "
+                    e.text.content = f" RAM Usage: Unavailable on Mobile/Web "
         # Check if toggle Debug Mode
         if self.input_manager.was_key_pressed(pg.K_F3):
             self.debug_mode = not self.debug_mode
@@ -323,8 +323,8 @@ class Game:
                 if e.id == "toggle_platform":
                     e.text.content = f" Platform: {self.settings.main.platform} Mode "
                 # Change certain settings and stuff depending on Platform
-                if e.id == "fullscreen_toggle_button" and self.settings.main.platform == "Mobile" or \
-                        platform == "emscripten":  # Mobile or Web then Block access to fullscreen
+                if e.id == "fullscreen_toggle_button" and (self.settings.main.platform == "Mobile" or
+                        platform == "emscripten"):  # Mobile or Web then Block access to fullscreen
                     e.enabled = False
                 else:
                     e.enabled = True
@@ -343,6 +343,9 @@ class Game:
                     e.position.y = 680
 
     def update(self, dt: float):
+        # Make Web version ALWAYS FULLSCREEN. Horrible implementation but works
+        if platform == "emscripten":
+            self.renderer.window.set_fullscreen()
         # Update InGame
         self.ingame.update(dt)
         # Reset Camera and Update Debug Camera

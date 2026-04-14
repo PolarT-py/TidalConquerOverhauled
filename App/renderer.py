@@ -1,5 +1,7 @@
 from __future__ import annotations
 from pathlib import Path
+from sys import platform
+from os import environ
 
 import pygame as pg, pygame._sdl2.video as sdl2
 from pygame import Vector2
@@ -55,8 +57,12 @@ class Renderer:
             title=self.main_title,
             resizable=True,
         )
-        if self.is_fullscreen:  # Don't need to set as windowed, it's windowed by default
+        # Don't need to set as windowed, it's windowed by default
+        if self.is_fullscreen:
             self.window.set_fullscreen()
+        # If on Web
+        if platform == "emscripten":
+            environ["SDL_RENDER_SCALE_QUALITY"] = "0"
         # Set Renderer
         self.renderer = sdl2.Renderer(self.window, vsync=vsync)
         self.renderer.draw_blend_mode = pg.BLENDMODE_BLEND  # Allow transparency in Rects and other shapes
